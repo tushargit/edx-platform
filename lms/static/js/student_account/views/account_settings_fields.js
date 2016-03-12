@@ -1,27 +1,30 @@
-;(function (define, undefined) {
+;(function(define, undefined) {
     'use strict';
     define([
-        'gettext', 'jquery', 'underscore', 'backbone', 'js/views/fields'
-    ], function (gettext, $, _, Backbone, FieldViews) {
+        'gettext', 'jquery', 'underscore', 'backbone', 'js/views/fields',
+        'edx-ui-toolkit/js/utils/html-utils',
+        'edx-ui-toolkit/js/utils/string-utils'
+    ], function(gettext, $, _, Backbone, FieldViews, HtmlUtils, StringUtils) {
 
         var AccountSettingsFieldViews = {};
 
         AccountSettingsFieldViews.EmailFieldView = FieldViews.TextFieldView.extend({
-
             successMessage: function() {
-                return this.indicators.success + interpolate_text(
-                    gettext(
-                        /* jshint maxlen: false */
-                        'We\'ve sent a confirmation message to {new_email_address}. Click the link in the message to update your email address.'
-                    ),
-                    {'new_email_address': this.fieldValue()}
+                return HtmlUtils.joinHtml(
+                    this.indicator_html.success,
+                    StringUtils.interpolate(
+                        gettext(
+                            "We've sent a confirmation message to {new_email_address}. Click the link in the message to update your email address."  // jshint ignore:line
+                        ),
+                        {new_email_address: this.fieldValue()}
+                    )
                 );
             }
         });
 
         AccountSettingsFieldViews.LanguagePreferenceFieldView = FieldViews.DropdownFieldView.extend({
 
-            saveSucceeded: function () {
+            saveSucceeded: function() {
                 var data = {
                     'language': this.modelValue()
                 };
@@ -32,13 +35,15 @@
                     url: '/i18n/setlang/',
                     data: data,
                     dataType: 'html',
-                    success: function () {
+                    success: function() {
                         view.showSuccessMessage();
                     },
-                    error: function () {
+                    error: function() {
                         view.showNotificationMessage(
-                            view.indicators.error +
-                                gettext('You must sign out and sign back in before your language changes take effect.')
+                            HtmlUtils.interpolateHtml(
+                                gettext('{error_indicator}You must sign out and sign back in before your language changes take effect.'),  // jshint ignore:line
+                                {error_indicator: view.indicator_html.error}
+                            )
                         );
                     }
                 });
@@ -48,49 +53,47 @@
 
         AccountSettingsFieldViews.PasswordFieldView = FieldViews.LinkFieldView.extend({
 
-            initialize: function (options) {
+            initialize: function(options) {
                 this.options = _.extend({}, options);
                 this._super(options);
                 _.bindAll(this, 'resetPassword');
             },
 
-            linkClicked: function (event) {
+            linkClicked: function(event) {
                 event.preventDefault();
                 this.resetPassword(event);
             },
 
-            resetPassword: function () {
-                var data = {};
+            resetPassword: function() {
+                var data = {},
+                    view = this;
                 data[this.options.emailAttribute] = this.model.get(this.options.emailAttribute);
-
-                var view = this;
                 $.ajax({
                     type: 'POST',
                     url: view.options.linkHref,
                     data: data,
-                    success: function () {
+                    success: function() {
                         view.showSuccessMessage();
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         view.showErrorMessage(xhr);
                     }
                 });
             },
 
-            successMessage: function () {
-                return this.indicators.success + interpolate_text(
-                    gettext(
-                        /* jshint maxlen: false */
-                        'We\'ve sent a message to {email_address}. Click the link in the message to reset your password.'
-                    ),
-                    {'email_address': this.model.get(this.options.emailAttribute)}
+            successMessage: function() {
+                return HtmlUtils.joinHtml(
+                    this.indicator_html.success,
+                    StringUtils.interpolate(
+                        gettext("We've sent a message to {email_address}. Click the link in the message to reset your password."),  // jshint ignore:line
+                        {email_address: this.model.get(this.options.emailAttribute)}
+                    )
                 );
             }
         });
 
         AccountSettingsFieldViews.LanguageProficienciesFieldView = FieldViews.DropdownFieldView.extend({
-
-            modelValue: function () {
+            modelValue: function() {
                 var modelValue = this.model.get(this.options.valueAttribute);
                 if (_.isArray(modelValue) && modelValue.length > 0) {
                     return modelValue[0].code;
@@ -99,10 +102,10 @@
                 }
             },
 
-            saveValue: function () {
+            saveValue: function() {
+                var attributes = {},
+                    value = this.fieldValue() ? [{'code': this.fieldValue()}] : [];
                 if (this.persistChanges === true) {
-                    var attributes = {},
-                        value = this.fieldValue() ? [{'code': this.fieldValue()}] : [];
                     attributes[this.options.valueAttribute] = value;
                     this.saveAttributes(attributes);
                 }
@@ -111,23 +114,23 @@
 
         AccountSettingsFieldViews.AuthFieldView = FieldViews.LinkFieldView.extend({
 
-            initialize: function (options) {
+            initialize: function(options) {
                 this.options = _.extend({}, options);
                 this._super(options);
                 _.bindAll(this, 'redirect_to', 'disconnect', 'successMessage', 'inProgressMessage');
             },
 
-            render: function () {
+            render: function() {
                 var linkTitle;
                 if (this.options.connected) {
                     linkTitle = gettext('Unlink');
                 } else if (this.options.acceptsLogins) {
-                    linkTitle = gettext('Link')
+                    linkTitle = gettext('Link');
                 } else {
-                    linkTitle = ''
+                    linkTitle = '';
                 }
 
-                this.$el.html(this.template({
+                HtmlUtils.setHtml(this.$el, this.template({
                     id: this.options.valueAttribute,
                     title: this.options.title,
                     screenReaderTitle: this.options.screenReaderTitle,
@@ -138,7 +141,7 @@
                 return this;
             },
 
-            linkClicked: function (event) {
+            linkClicked: function(event) {
                 event.preventDefault();
 
                 this.showInProgressMessage();
@@ -152,11 +155,11 @@
                 }
             },
 
-            redirect_to: function (url) {
+            redirect_to: function(url) {
                 window.location.href = url;
             },
 
-            disconnect: function () {
+            disconnect: function() {
                 var data = {};
 
                 // Disconnects the provider from the user's edX account.
@@ -167,23 +170,29 @@
                     url: this.options.disconnectUrl,
                     data: data,
                     dataType: 'html',
-                    success: function () {
+                    success: function() {
                         view.options.connected = false;
                         view.render();
                         view.showSuccessMessage();
                     },
-                    error: function (xhr) {
+                    error: function(xhr) {
                         view.showErrorMessage(xhr);
                     }
                 });
             },
 
             inProgressMessage: function() {
-                return this.indicators.inProgress + (this.options.connected ? gettext('Unlinking') : gettext('Linking'));
+                return HtmlUtils.joinHtml(
+                    this.indicator_html.inProgress,
+                    this.options.connected ? gettext('Unlinking') : gettext('Linking')
+                );
             },
 
             successMessage: function() {
-                return this.indicators.success + gettext('Successfully unlinked.');
+                return HtmlUtils.joinHtml(
+                    this.indicator_html.success,
+                    gettext('Successfully unlinked.')
+                );
             }
         });
 

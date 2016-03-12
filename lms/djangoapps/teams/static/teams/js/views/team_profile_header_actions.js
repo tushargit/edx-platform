@@ -1,31 +1,32 @@
-;(function (define) {
+;(function(define) {
     'use strict';
 
     define(['backbone',
             'jquery',
             'underscore',
             'gettext',
+            'edx-ui-toolkit/js/utils/html-utils',
             'teams/js/views/team_utils',
             'text!teams/templates/team-profile-header-actions.underscore'],
-        function (Backbone, $, _, gettext, TeamUtils, teamProfileHeaderActionsTemplate) {
+        function(Backbone, $, _, gettext, HtmlUtils, TeamUtils, teamProfileHeaderActionsTemplate) {
             return Backbone.View.extend({
 
-                errorMessage: gettext("An error occurred. Try again."),
-                alreadyMemberMessage: gettext("You already belong to another team."),
-                teamFullMessage: gettext("This team is full."),
+                errorMessage: gettext('An error occurred. Try again.'),
+                alreadyMemberMessage: gettext('You already belong to another team.'),
+                teamFullMessage: gettext('This team is full.'),
 
                 events: {
-                    "click .action-primary": "joinTeam",
-                    "click .action-edit-team": "editTeam"
+                    'click .action-primary': 'joinTeam',
+                    'click .action-edit-team': 'editTeam'
                 },
 
                 initialize: function(options) {
                     this.teamEvents = options.teamEvents;
-                    this.template = _.template(teamProfileHeaderActionsTemplate);
+                    this.template = HtmlUtils.template(teamProfileHeaderActionsTemplate);
                     this.context = options.context;
                     this.showEditButton = options.showEditButton;
                     this.topic = options.topic;
-                    this.listenTo(this.model, "change", this.render);
+                    this.listenTo(this.model, 'change', this.render);
                 },
 
                 render: function() {
@@ -34,7 +35,7 @@
                         message,
                         showJoinButton,
                         teamHasSpace;
-                    this.getUserTeamInfo(username, this.context.maxTeamSize).done(function (info) {
+                    this.getUserTeamInfo(username, this.context.maxTeamSize).done(function(info) {
                         teamHasSpace = info.teamHasSpace;
 
                         // if user is the member of current team then we wouldn't show anything
@@ -48,16 +49,19 @@
                             }
                         }
 
-                        view.$el.html(view.template({
-                            showJoinButton: showJoinButton,
-                            message: message,
-                            showEditButton: view.showEditButton
-                        }));
+                        HtmlUtils.setHtml(
+                            view.$el,
+                            view.template({
+                                showJoinButton: showJoinButton,
+                                message: message,
+                                showEditButton: view.showEditButton
+                            })
+                        );
                     });
                     return view;
                 },
 
-                joinTeam: function (event) {
+                joinTeam: function(event) {
                     var view = this;
 
                     event.preventDefault();
@@ -65,7 +69,7 @@
                         type: 'POST',
                         url: view.context.teamMembershipsUrl,
                         data: {'username': view.context.userInfo.username, 'team_id': view.model.get('id')}
-                    }).done(function (data) {
+                    }).done(function() {
                         view.model.fetch()
                             .done(function() {
                                 view.teamEvents.trigger('teams:update', {
@@ -73,12 +77,12 @@
                                     team: view.model
                                 });
                             });
-                    }).fail(function (data) {
+                    }).fail(function(data) {
                         TeamUtils.parseAndShowMessage(data, view.errorMessage);
                     });
                 },
 
-                getUserTeamInfo: function (username, maxTeamSize) {
+                getUserTeamInfo: function(username, maxTeamSize) {
                     var deferred = $.Deferred();
                     var info = {
                         alreadyMember: false,
@@ -105,7 +109,7 @@
                                 info.memberOfCurrentTeam = false;
                                 info.teamHasSpace = teamHasSpace;
                                 deferred.resolve(info);
-                            }).fail(function (data) {
+                            }).fail(function(data) {
                                 TeamUtils.parseAndShowMessage(data, view.errorMessage);
                                 deferred.reject();
                             });
@@ -117,10 +121,10 @@
                     return deferred.promise();
                 },
 
-                editTeam: function (event) {
+                editTeam: function(event) {
                     event.preventDefault();
                     Backbone.history.navigate(
-                        'teams/' + this.topic.id + '/' + this.model.get('id') +'/edit-team',
+                        'teams/' + this.topic.id + '/' + this.model.get('id') + '/edit-team',
                         {trigger: true}
                     );
                 }

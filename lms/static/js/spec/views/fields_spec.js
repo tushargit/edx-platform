@@ -298,7 +298,7 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
                 var view = new FieldViews.TextareaFieldView(fieldData).render();
 
                 FieldViewsSpecHelpers.expectTitleToContain(view, fieldData.title);
-                FieldViewsSpecHelpers.expectMessageContains(view, view.indicators.canEdit);
+                FieldViewsSpecHelpers.expectMessageContains(view, view.indicator_html.canEdit);
                 expect(view.el).toHaveClass('mode-placeholder');
                 expect(view.fieldValue()).toBe(fieldData.placeholderValue);
                 expect(view.$(textareaLinkClass).length).toBe(1);

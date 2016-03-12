@@ -1,11 +1,20 @@
-;(function (define, undefined) {
+;(function(define, undefined) {
     'use strict';
     define(['gettext', 'jquery', 'underscore', 'backbone', 'moment',
+            'edx-ui-toolkit/js/utils/html-utils',
             'text!templates/student_profile/badge.underscore',
             'js/student_profile/views/share_modal_view'],
-        function (gettext, $, _, Backbone, Moment, badgeTemplate, ShareModalView) {
+        function(gettext, $, _, Backbone, Moment, HtmlUtils, badgeTemplate, ShareModalView) {
 
             var BadgeView = Backbone.View.extend({
+                attributes: {
+                    'class': 'badge-display'
+                },
+                template: HtmlUtils.template(badgeTemplate),
+                events: {
+                    'click .share-button': 'createModal'
+                },
+
                 initialize: function(options) {
                     this.options = _.extend({}, options);
                     this.context = _.extend(this.options.model.toJSON(), {
@@ -14,13 +23,7 @@
                         'badgeMeta': options.badgeMeta
                     });
                 },
-                attributes: {
-                    'class': 'badge-display'
-                },
-                template: _.template(badgeTemplate),
-                events: {
-                    'click .share-button': 'createModal'
-                },
+
                 createModal: function() {
                     var modal = new ShareModalView({
                         model: new Backbone.Model(this.context),
@@ -31,8 +34,9 @@
                     $('body').append(modal.$el);
                     modal.$el.fadeIn('short', 'swing', _.bind(modal.ready, modal));
                 },
-                render: function () {
-                    this.$el.html(this.template(this.context));
+
+                render: function() {
+                    HtmlUtils.setHtml(this.$el, this.template(this.context));
                     this.shareButton = this.$el.find('.share-button');
                     return this;
                 }

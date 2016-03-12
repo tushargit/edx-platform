@@ -1,52 +1,61 @@
 /**
  * View for a topic card. Displays a Topic.
  */
-;(function (define) {
+;(function(define) {
     'use strict';
-    define(['backbone', 'underscore', 'gettext', 'js/components/card/views/card'],
-        function (Backbone, _, gettext, CardView) {
+    define([
+            'backbone', 'underscore', 'gettext', 'js/components/card/views/card',
+            'edx-ui-toolkit/js/utils/html-utils',
+            'edx-ui-toolkit/js/utils/string-utils'
+        ],
+        function(Backbone, _, gettext, CardView, HtmlUtils, StringUtils) {
             var TeamCountDetailView = Backbone.View.extend({
                 tagName: 'p',
                 className: 'team-count',
 
-                initialize: function () {
+                initialize: function() {
                     this.render();
                 },
 
-                render: function () {
-                    var team_count = this.model.get('team_count');
-                    this.$el.html(_.escape(interpolate(
-                        ngettext('%(team_count)s Team', '%(team_count)s Teams', team_count),
-                        {team_count: team_count},
-                        true
-                    )));
+                render: function() {
+                    var teamCount = this.model.get('team_count');
+                    this.$el.text(
+                        StringUtils.interpolate(
+                            ngettext('{team_count} Team', '{team_count} Teams', teamCount),
+                            {team_count: teamCount}
+                        )
+                    );
                     return this;
                 }
             });
 
             var TopicCardView = CardView.extend({
-                initialize: function () {
-                    this.detailViews = [new TeamCountDetailView({ model: this.model })];
+                initialize: function() {
+                    this.detailViews = [new TeamCountDetailView({model: this.model})];
                     CardView.prototype.initialize.apply(this, arguments);
                 },
 
-                actionUrl: function () {
+                actionUrl: function() {
                     return '#topics/' + this.model.get('id');
                 },
 
                 configuration: 'square_card',
                 cardClass: 'topic-card',
                 pennant: gettext('Topic'),
-                title: function () { return this.model.get('name'); },
-                description: function () { return this.model.get('description'); },
-                details: function () { return this.detailViews; },
+                title: function() { return this.model.get('name'); },
+                description: function() { return this.model.get('description'); },
+                details: function() { return this.detailViews; },
                 actionClass: 'action-view',
-                actionContent: function () {
-                    var screenReaderText = _.escape(interpolate(
-                        gettext('View Teams in the %(topic_name)s Topic'),
-                        { topic_name: this.model.get('name') }, true
-                    ));
-                    return '<span class="sr">' + screenReaderText + '</span><i class="icon fa fa-arrow-right" aria-hidden="true"></i>';
+                actionContentHtml: function() {
+                    return HtmlUtils.joinHtml(
+                        HtmlUtils.HTML('<span class="sr">'),
+                        StringUtils.interpolate(
+                            gettext('View Teams in the {topic_name} Topic'),
+                            {topic_name: this.model.get('name')}
+                        ),
+                        HtmlUtils.HTML('</span>'),
+                        HtmlUtils.HTML('<i class="icon fa fa-arrow-right" aria-hidden="true"></i>')
+                    );
                 }
             });
 

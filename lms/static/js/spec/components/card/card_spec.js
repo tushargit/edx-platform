@@ -61,7 +61,7 @@
                         description: 'A test description',
                         actionClass: 'test-action',
                         actionUrl: 'www.example.com',
-                        actionContent: 'A test action'
+                        actionContentHtml: 'A test action'
                     }))();
                     verifyContent(view);
                 });
@@ -74,7 +74,7 @@
                         description: function () { return 'A test description'; },
                         actionClass: function () { return 'test-action'; },
                         actionUrl: function () { return 'www.example.com'; },
-                        actionContent: function () { return 'A test action'; }
+                        actionContentHtml: function () { return 'A test action'; }
                     }));
                     verifyContent(view);
                 });

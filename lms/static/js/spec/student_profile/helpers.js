@@ -6,7 +6,7 @@ define(['underscore', 'URI', 'common/js/spec_helpers/ajax_helpers'], function(_,
         var fieldTitle = $element.find('.u-field-title').text().trim();
 
         if (!_.isUndefined(view.options.title)) {
-            expect(fieldTitle).toBe(view.options.title);
+            expect(fieldTitle).toEqual(view.options.title);
         }
 
         if ('fieldValue' in view || 'imageUrl' in view) {

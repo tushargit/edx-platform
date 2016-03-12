@@ -1,25 +1,25 @@
-;(function (define, undefined) {
+;(function(define) {
     'use strict';
     define([
         'gettext', 'jquery', 'underscore', 'backbone', 'logger',
+        'edx-ui-toolkit/js/utils/html-utils',
+        'edx-ui-toolkit/js/utils/string-utils',
+        'common/js/components/collections/paging_collection',
+        'js/views/fields',
+        'js/views/message_banner',
         'js/student_account/models/user_account_model',
         'js/student_account/models/user_preferences_model',
-        'js/views/fields',
+        'js/student_account/views/account_settings_fields',
         'js/student_profile/views/learner_profile_fields',
         'js/student_profile/views/learner_profile_view',
         'js/student_profile/models/badges_model',
-        'common/js/components/collections/paging_collection',
-        'js/student_profile/views/badge_list_container',
-        'js/student_account/views/account_settings_fields',
-        'js/views/message_banner',
-        'string_utils'
-    ], function (gettext, $, _, Backbone, Logger, AccountSettingsModel, AccountPreferencesModel, FieldsView,
-                 LearnerProfileFieldsView, LearnerProfileView, BadgeModel, PagingCollection, BadgeListContainer,
-                 AccountSettingsFieldViews, MessageBannerView) {
+        'js/student_profile/views/badge_list_container'
+    ], function(gettext, $, _, Backbone, Logger, HtmlUtils, StringUtils, PagingCollection, FieldsView,
+                MessageBannerView, AccountSettingsModel, AccountPreferencesModel, AccountSettingsFieldViews,
+                LearnerProfileFieldsView, LearnerProfileView, BadgesModel, BadgeListContainer) {
+        return function(options) {
 
-        return function (options) {
-
-            var learnerProfileElement = $('.wrapper-profile');
+            var $learnerProfileElement = $('.wrapper-profile');
 
             var accountSettingsModel = new AccountSettingsModel(
                 _.extend(
@@ -49,10 +49,11 @@
                 required: true,
                 editable: 'always',
                 showMessages: false,
-                title: interpolate_text(
-                    gettext('{platform_name} learners can see my:'), {platform_name: options.platform_name}
+                title: StringUtils.interpolate(
+                    gettext('{platform_name} learners can see my:'),
+                    {platform_name: options.platform_name}
                 ),
-                valueAttribute: "account_privacy",
+                valueAttribute: 'account_privacy',
                 options: [
                     ['private', gettext('Limited Profile')],
                     ['all_users', gettext('Full Profile')]
@@ -64,20 +65,20 @@
 
             var profileImageFieldView = new LearnerProfileFieldsView.ProfileImageFieldView({
                 model: accountSettingsModel,
-                valueAttribute: "profile_image",
+                valueAttribute: 'profile_image',
                 editable: editable === 'toggle',
                 messageView: messageView,
-                imageMaxBytes: options['profile_image_max_bytes'],
-                imageMinBytes: options['profile_image_min_bytes'],
-                imageUploadUrl: options['profile_image_upload_url'],
-                imageRemoveUrl: options['profile_image_remove_url']
+                imageMaxBytes: options.profile_image_max_bytes,
+                imageMinBytes: options.profile_image_min_bytes,
+                imageUploadUrl: options.profile_image_upload_url,
+                imageRemoveUrl: options.profile_image_remove_url
             });
 
             var usernameFieldView = new FieldsView.ReadonlyFieldView({
-                    model: accountSettingsModel,
-                    screenReaderTitle: gettext('Username'),
-                    valueAttribute: "username",
-                    helpMessage: ""
+                model: accountSettingsModel,
+                screenReaderTitle: gettext('Username'),
+                valueAttribute: 'username',
+                helpMessage: ''
             });
 
             var sectionOneFieldViews = [
@@ -90,7 +91,7 @@
                     showMessages: false,
                     iconName: 'fa-map-marker',
                     placeholderValue: gettext('Add Country'),
-                    valueAttribute: "country",
+                    valueAttribute: 'country',
                     options: options.country_options,
                     helpMessage: '',
                     persistChanges: true
@@ -104,7 +105,7 @@
                     showMessages: false,
                     iconName: 'fa-comment',
                     placeholderValue: gettext('Add language'),
-                    valueAttribute: "language_proficiencies",
+                    valueAttribute: 'language_proficiencies',
                     options: options.language_options,
                     helpMessage: '',
                     persistChanges: true
@@ -117,8 +118,8 @@
                     editable: editable,
                     showMessages: false,
                     title: gettext('About me'),
-                    placeholderValue: gettext("Tell other learners a little about yourself: where you live, what your interests are, why you're taking courses, or what you hope to learn."),
-                    valueAttribute: "bio",
+                    placeholderValue: gettext("Tell other learners a little about yourself: where you live, what your interests are, why you're taking courses, or what you hope to learn."),  // jshint ignore:line
+                    valueAttribute: 'bio',
                     helpMessage: '',
                     persistChanges: true,
                     messagePosition: 'header'
@@ -141,7 +142,7 @@
             });
 
             var learnerProfileView = new LearnerProfileView({
-                el: learnerProfileElement,
+                el: $learnerProfileElement,
                 ownProfile: options.own_profile,
                 has_preferences_access: options.has_preferences_access,
                 accountSettingsModel: accountSettingsModel,
@@ -165,7 +166,7 @@
             var showLearnerProfileView = function() {
                 // Record that the profile page was viewed
                 Logger.log('edx.user.settings.viewed', {
-                    page: "profile",
+                    page: 'profile',
                     visibility: getProfileVisibility(),
                     user_id: options.profile_user_id
                 });

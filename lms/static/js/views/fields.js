@@ -1,7 +1,8 @@
 ;(function (define, undefined) {
     'use strict';
     define([
-        'gettext', 'jquery', 'underscore', 'backbone', 
+        'gettext', 'jquery', 'underscore', 'backbone',
+        'edx-ui-toolkit/js/utils/html-utils',
         'text!templates/fields/field_readonly.underscore',
         'text!templates/fields/field_dropdown.underscore',
         'text!templates/fields/field_link.underscore',
@@ -9,6 +10,7 @@
         'text!templates/fields/field_textarea.underscore',
         'backbone-super'
     ], function (gettext, $, _, Backbone,
+                 HtmlUtils,
                  field_readonly_template,
                  field_dropdown_template,
                  field_link_template,
@@ -18,9 +20,20 @@
 
         var messageRevertDelay = 6000;
         var FieldViews = {};
+        var statusButtonHtml = function(label, classNames) {
+            return HtmlUtils.joinHtml(
+                HtmlUtils.interpolateHtml(
+                    '<i class="fa {class_names}" aria-hidden="true"></i>',
+                    {class_names: classNames}
+                ),
+                HtmlUtils.HTML('<span class="sr">'),
+                label,
+                HtmlUtils.HTML('</span>')
+            );
+        };
 
         FieldViews.FieldView = Backbone.View.extend({
-                
+
             fieldType: 'generic',
 
             className: function () {
@@ -29,13 +42,16 @@
 
             tagName: 'div',
 
-            indicators: {
-                'canEdit': '<i class="icon fa fa-pencil message-can-edit" aria-hidden="true"></i><span class="sr">' + gettext("Editable") + '</span>',
-                'error': '<i class="fa fa-exclamation-triangle message-error" aria-hidden="true"></i><span class="sr">' + gettext("Error") + '</span>',
-                'validationError': '<i class="fa fa-exclamation-triangle message-validation-error" aria-hidden="true"></i><span class="sr">' + gettext("Validation Error") + '</span>',
-                'inProgress': '<i class="fa fa-spinner fa-pulse message-in-progress" aria-hidden="true"></i><span class="sr">' + gettext("In Progress") + '</span>',
-                'success': '<i class="fa fa-check message-success" aria-hidden="true"></i><span class="sr">' + gettext("Success") + '</span>',
-                'plus': '<i class="fa fa-plus placeholder" aria-hidden="true"></i><span class="sr">' + gettext("Placeholder")+ '</span>'
+            indicator_html: {
+                'canEdit': statusButtonHtml(gettext('Editable'), 'icon fa-pencil message-can-edit'),
+                'error': statusButtonHtml(gettext('Error'), 'fa-exclamation-triangle message-error'),
+                'validationError': statusButtonHtml(
+                    gettext('Validation Error'),
+                    'fa-exclamation-triangle message-validation-error'
+                ),
+                'inProgress': statusButtonHtml(gettext('In Progress'), 'fa-spinner fa-pulse message-in-progress'),
+                'success': statusButtonHtml(gettext('Success'), 'fa-check message-success'),
+                'plus': statusButtonHtml(gettext('Placeholder'), 'fa-plus placeholder')
             },
 
             messages: {
@@ -53,7 +69,7 @@
 
             initialize: function () {
 
-                this.template = _.template(this.fieldTemplate || '');
+                this.template = HtmlUtils.template(this.fieldTemplate || '');
 
                 this.helpMessage = this.options.helpMessage || '';
                 this.showMessages = _.isUndefined(this.options.showMessages) ? true : this.options.showMessages;
@@ -72,25 +88,25 @@
                 return (this.modelValue() === true);
             },
 
-            title: function (text) {
-                return this.$('.u-field-title').html(text);
+            title: function (title) {
+                return HtmlUtils.setHtml(this.$('.u-field-title'), title);
             },
 
             getMessage: function(message_status) {
                 if ((message_status + 'Message') in this) {
                     return this[message_status + 'Message'].call(this);
                 } else if (this.showMessages) {
-                    return this.indicators[message_status] + this.messages[message_status];
+                    return HtmlUtils.joinHtml(this.indicator_html[message_status], this.messages[message_status]);
                 }
-                return this.indicators[message_status];
+                return this.indicator_html[message_status];
             },
 
             showHelpMessage: function (message) {
                 if (_.isUndefined(message) || _.isNull(message)) {
                     message = this.helpMessage;
                 }
-                this.$('.u-field-message-notification').html('');
-                this.$('.u-field-message-help').html(message);
+                HtmlUtils.setHtml(this.$('.u-field-message-notification'), '');
+                HtmlUtils.setHtml(this.$('.u-field-message-help'), message);
             },
 
             getNotificationMessage: function() {
@@ -98,8 +114,8 @@
             },
 
             showNotificationMessage: function(message) {
-                this.$('.u-field-message-help').html('');
-                this.$('.u-field-message-notification').html(message);
+                HtmlUtils.setHtml(this.$('.u-field-message-help'), '');
+                HtmlUtils.setHtml(this.$('.u-field-message-notification'), message);
             },
 
             showCanEditMessage: function(show) {
@@ -128,7 +144,8 @@
                 this.lastSuccessMessageContext = context;
 
                 setTimeout(function () {
-                    if ((context === view.lastSuccessMessageContext) && (view.getNotificationMessage() === successMessage)) {
+                    if ((context === view.lastSuccessMessageContext) &&
+                        (view.getNotificationMessage() === successMessage.toString())) {
                         if (view.editable === 'toggle') {
                             view.showCanEditMessage(true);
                         } else {
@@ -142,10 +159,8 @@
                 if (xhr.status === 400) {
                     try {
                         var errors = JSON.parse(xhr.responseText),
-                            validationErrorMessage = _.escape(
-                                errors.field_errors[this.options.valueAttribute].user_message
-                            ),
-                            message = this.indicators.validationError + validationErrorMessage;
+                            validationErrorMessage = errors.field_errors[this.options.valueAttribute].user_message,
+                            message = HtmlUtils.joinHtml(this.indicator_html.validationError, validationErrorMessage);
                         this.showNotificationMessage(message);
                     } catch (error) {
                         this.showNotificationMessage(this.getMessage('error'));
@@ -264,13 +279,16 @@
             },
 
             render: function () {
-                this.$el.html(this.template({
-                    id: this.options.valueAttribute,
-                    title: this.options.title,
-                    screenReaderTitle: this.options.screenReaderTitle || this.options.title,
-                    value: this.modelValue(),
-                    message: this.helpMessage
-                }));
+                HtmlUtils.setHtml(
+                    this.$el,
+                    this.template({
+                        id: this.options.valueAttribute,
+                        title: this.options.title,
+                        screenReaderTitle: this.options.screenReaderTitle || this.options.title,
+                        value: this.modelValue(),
+                        message: this.helpMessage
+                    })
+                );
                 this.delegateEvents();
                 return this;
             },
@@ -280,7 +298,7 @@
             },
 
             updateValueInField: function () {
-                this.$('.u-field-value ').html(_.escape(this.modelValue()));
+                this.$('.u-field-value ').text(this.modelValue());
             }
         });
 
@@ -301,12 +319,15 @@
             },
 
             render: function () {
-                this.$el.html(this.template({
-                    id: this.options.valueAttribute,
-                    title: this.options.title,
-                    value: this.modelValue(),
-                    message: this.helpMessage
-                }));
+                HtmlUtils.setHtml(
+                    this.$el,
+                    this.template({
+                        id: this.options.valueAttribute,
+                        title: this.options.title,
+                        value: this.modelValue(),
+                        message: this.helpMessage
+                    })
+                );
                 this.delegateEvents();
                 return this;
             },
@@ -340,25 +361,30 @@
             },
 
             initialize: function (options) {
-                _.bindAll(this, 'render', 'optionForValue', 'fieldValue', 'displayValue', 'updateValueInField', 'saveValue');
+                _.bindAll(this, 'render', 'optionForValue', 'fieldValue', 'displayValue',
+                    'updateValueInField', 'saveValue'
+                );
                 this._super(options);
 
                 this.listenTo(this.model, "change:" + this.options.valueAttribute, this.updateValueInField);
             },
 
             render: function () {
-                this.$el.html(this.template({
-                    id: this.options.valueAttribute,
-                    mode: this.mode,
-                    editable: this.editable,
-                    title: this.options.title,
-                    screenReaderTitle: this.options.screenReaderTitle || this.options.title,
-                    titleVisible: this.options.titleVisible !== undefined ? this.options.titleVisible : true,
-                    iconName: this.options.iconName,
-                    showBlankOption: (!this.options.required || !this.modelValueIsSet()),
-                    selectOptions: this.options.options,
-                    message: this.helpMessage
-                }));
+                HtmlUtils.setHtml(
+                    this.$el,
+                    this.template({
+                        id: this.options.valueAttribute,
+                        mode: this.mode,
+                        editable: this.editable,
+                        title: this.options.title,
+                        screenReaderTitle: this.options.screenReaderTitle || this.options.title,
+                        titleVisible: this.options.titleVisible !== undefined ? this.options.titleVisible : true,
+                        iconName: this.options.iconName,
+                        showBlankOption: (!this.options.required || !this.modelValueIsSet()),
+                        selectOptions: this.options.options,
+                        message: this.helpMessage
+                    })
+                );
                 this.delegateEvents();
                 this.updateValueInField();
 
@@ -411,7 +437,7 @@
                     value = this.options.placeholderValue || '';
                 }
                 this.$('.u-field-value').attr('aria-label', this.options.title);
-                this.$('.u-field-value-readonly').html(_.escape(value));
+                this.$('.u-field-value-readonly').text(value);
 
                 if (this.mode === 'display') {
                     this.updateDisplayModeClass();
@@ -481,22 +507,30 @@
             },
 
             render: function () {
-                var value = this.modelValue();
+                var value = this.modelValue(),
+                    title = this.options.title;
                 if (this.mode === 'display') {
                     value = value || this.options.placeholderValue;
                 }
-                this.$el.html(this.template({
-                    id: this.options.valueAttribute,
-                    screenReaderTitle: this.options.screenReaderTitle || this.options.title,
-                    mode: this.mode,
-                    editable: this.editable,
-                    value: value,
-                    message: this.helpMessage,
-                    messagePosition: this.options.messagePosition || 'footer',
-                    placeholderValue: this.options.placeholderValue
-                }));
+                HtmlUtils.setHtml(
+                    this.$el,
+                    this.template({
+                        id: this.options.valueAttribute,
+                        screenReaderTitle: this.options.screenReaderTitle || this.options.title,
+                        mode: this.mode,
+                        editable: this.editable,
+                        value: value,
+                        message: this.helpMessage,
+                        messagePosition: this.options.messagePosition || 'footer',
+                        placeholderValue: this.options.placeholderValue
+                    })
+                );
                 this.delegateEvents();
-                this.title((this.modelValue() || this.mode === 'edit') ? this.options.title : this.indicators['plus'] + this.options.title);
+                if (this.modelValue() || this.mode === 'edit') {
+                    this.title(title);
+                } else {
+                    this.title(HtmlUtils.joinHtml(this.indicator_html.plus, title));
+                }
 
                 if (this.editable === 'toggle') {
                     this.showCanEditMessage(this.mode === 'display');
@@ -546,7 +580,7 @@
             },
 
             modelValueIsSet: function() {
-                return !(this.modelValue() === '');
+                return this.modelValue() !== '';
             },
 
             showEditMode: function(render) {
@@ -580,14 +614,17 @@
             },
 
             render: function () {
-                this.$el.html(this.template({
-                    id: this.options.valueAttribute,
-                    title: this.options.title,
-                    screenReaderTitle: this.options.screenReaderTitle || this.options.title,
-                    linkTitle: this.options.linkTitle,
-                    linkHref: this.options.linkHref,
-                    message: this.helpMessage
-                }));
+                HtmlUtils.setHtml(
+                    this.$el,
+                    this.template({
+                        id: this.options.valueAttribute,
+                        title: this.options.title,
+                        screenReaderTitle: this.options.screenReaderTitle || this.options.title,
+                        linkTitle: this.options.linkTitle,
+                        linkHref: this.options.linkHref,
+                        message: this.helpMessage
+                    })
+                );
                 this.delegateEvents();
                 return this;
             },

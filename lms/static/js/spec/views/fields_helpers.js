@@ -1,7 +1,8 @@
-define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers', 'common/js/spec_helpers/template_helpers',
+define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers',
+        'common/js/spec_helpers/template_helpers',
         'js/views/fields',
         'string_utils'],
-    function (Backbone, $, _, AjaxHelpers, TemplateHelpers, FieldViews) {
+    function(Backbone, $, _, AjaxHelpers, TemplateHelpers, FieldViews) {
         'use strict';
 
         var API_URL = '/api/end_point/v1';
@@ -22,7 +23,7 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
             url: API_URL
         });
 
-        var createFieldData = function (fieldType, fieldData) {
+        var createFieldData = function(fieldType, fieldData) {
             var data = {
                 model: fieldData.model || new UserAccountModel({}),
                 title: fieldData.title || 'Field Title',
@@ -33,14 +34,14 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
 
             switch (fieldType) {
                 case FieldViews.DropdownFieldView:
-                    data['required'] = fieldData.required || false;
-                    data['options'] = fieldData.options || SELECT_OPTIONS;
+                    data.required = fieldData.required || false;
+                    data.options = fieldData.options || SELECT_OPTIONS;
                     break;
                 case FieldViews.LinkFieldView:
                 case FieldViews.PasswordFieldView:
-                    data['linkTitle'] = fieldData.linkTitle || "Link Title";
-                    data['linkHref'] = fieldData.linkHref || "/path/to/resource";
-                    data['emailAttribute'] = 'email';
+                    data.linkTitle = fieldData.linkTitle || 'Link Title';
+                    data.linkHref = fieldData.linkHref || '/path/to/resource';
+                    data.emailAttribute = 'email';
                     break;
             }
 
@@ -49,26 +50,26 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
             return data;
         };
 
-        var createErrorMessage = function(attribute, user_message) {
-            var field_errors = {};
-            field_errors[attribute] = {
-                "user_message": user_message
+        var createErrorMessage = function(attribute, userMessage) {
+            var fieldErrors = {};
+            fieldErrors[attribute] = {
+                user_message: userMessage
             };
             return {
-                "field_errors": field_errors
+                field_errors: fieldErrors
             };
         };
 
         var expectTitleToContain = function(view, expectedTitle) {
-            expect(view.$('.u-field-title').text().trim()).toContain(expectedTitle);
+            expect(view.$('.u-field-title').text().trim()).toContain(expectedTitle.toString());
         };
 
         var expectDropdownSrTitleToContain = function(view, expectedTitle) {
-            expect(view.$('.u-field-value .sr').text().trim()).toContain(expectedTitle);
+            expect(view.$('.u-field-value .sr').text().trim()).toContain(expectedTitle.toString());
         };
 
         var expectMessageContains = function(view, expectedText) {
-            expect(view.$('.u-field-message').html()).toContain(expectedText);
+            expect(view.$('.u-field-message').html()).toContain(expectedText.toString());
         };
 
         var expectTitleAndMessageToContain = function(view, expectedTitle, expectedMessage) {
@@ -82,7 +83,7 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
             );
         };
 
-        var verifyMessageUpdates = function (view, data, timerCallback) {
+        var verifyMessageUpdates = function(view, data, timerCallback) {
 
             var message = 'Here to help!';
 
@@ -93,11 +94,11 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
             expectMessageContains(view, view.helpMessage);
 
             view.showInProgressMessage();
-            expectMessageContains(view, view.indicators.inProgress);
+            expectMessageContains(view, view.indicator_html.inProgress);
             expectMessageContains(view, view.messages.inProgress);
 
             view.showSuccessMessage();
-            expectMessageContains(view, view.indicators.success);
+            expectMessageContains(view, view.indicator_html.success);
             expectMessageContains(view, view.getMessage('success'));
 
             expect(timerCallback).not.toHaveBeenCalled();
@@ -106,14 +107,14 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
                 responseText: JSON.stringify(createErrorMessage(data.valueAttribute, 'Ops, try again!.')),
                 status: 400
             });
-            expectMessageContains(view, view.indicators.validationError);
+            expectMessageContains(view, view.indicator_html.validationError);
 
             view.showErrorMessage({status: 500});
-            expectMessageContains(view, view.indicators.error);
-            expectMessageContains(view, view.indicators.error);
+            expectMessageContains(view, view.indicator_html.error);
+            expectMessageContains(view, view.indicator_html.error);
         };
 
-        var verifySuccessMessageReset = function (view) {
+        var verifySuccessMessageReset = function(view) {
             view.showHelpMessage();
             expectMessageContains(view, view.helpMessage);
             view.showSuccessMessage();
@@ -123,14 +124,14 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
             expectMessageContains(view, view.helpMessage);
 
             view.showSuccessMessage();
-            expectMessageContains(view, view.indicators.success);
+            expectMessageContains(view, view.indicator_html.success);
             // But if we change the message, it should not get reset.
-            view.showHelpMessage("Do not reset this!");
+            view.showHelpMessage('Do not reset this!');
             jasmine.clock().tick(7000);
-            expectMessageContains(view, "Do not reset this!");
+            expectMessageContains(view, 'Do not reset this!');
         };
 
-        var verifyPersistence = function (fieldClass, requests) {
+        var verifyPersistence = function(fieldClass, requests) {
             var fieldData = createFieldData(fieldClass, {
                 title: 'Username',
                 valueAttribute: 'username',
@@ -161,14 +162,14 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
             AjaxHelpers.expectNoRequests(requests);
         };
 
-        var verifyEditableField = function (view, data, requests) {
-            var request_data = {};
+        var verifyEditableField = function(view, data, requests) {
+            var requestData = {};
             var url = view.model.url;
 
             if (data.editable === 'toggle') {
                 expect(view.el).toHaveClass('mode-placeholder');
                 expectTitleToContain(view, data.title);
-                expectMessageContains(view, view.indicators.canEdit);
+                expectMessageContains(view, view.indicator_html.canEdit);
                 view.$el.click();
             } else {
                 expectTitleAndMessageToContain(view, data.title, data.helpMessage);
@@ -182,11 +183,11 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
             view.$(data.valueInputSelector).val(data.validValue).change();
             // When the value in the field is changed
             expect(view.fieldValue()).toBe(data.validValue);
-            expectMessageContains(view, view.indicators.inProgress);
+            expectMessageContains(view, view.indicator_html.inProgress);
             expectMessageContains(view, view.messages.inProgress);
-            request_data[data.valueAttribute] = data.validValue;
+            requestData[data.valueAttribute] = data.validValue;
             AjaxHelpers.expectJsonRequest(
-                requests, 'PATCH', url, request_data
+                requests, 'PATCH', url, requestData
             );
 
             AjaxHelpers.respondWithNoContent(requests);
@@ -195,37 +196,37 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
                 expect(view.el).toHaveClass('mode-display');
                 view.$el.click();
             } else {
-                expectMessageContains(view, view.indicators.success);
+                expectMessageContains(view, view.indicator_html.success);
             }
 
             view.$(data.valueInputSelector).val(data.invalidValue1).change();
-            request_data[data.valueAttribute] = data.invalidValue1;
+            requestData[data.valueAttribute] = data.invalidValue1;
             AjaxHelpers.expectJsonRequest(
-                requests, 'PATCH', url, request_data
+                requests, 'PATCH', url, requestData
             );
             AjaxHelpers.respondWithError(requests, 500);
             // When server returns a 500 error
-            expectMessageContains(view, view.indicators.error);
+            expectMessageContains(view, view.indicator_html.error);
             expectMessageContains(view, view.messages.error);
             expect(view.el).toHaveClass('mode-edit');
 
             view.$(data.valueInputSelector).val(data.invalidValue2).change();
-            request_data[data.valueAttribute] = data.invalidValue2;
+            requestData[data.valueAttribute] = data.invalidValue2;
             AjaxHelpers.expectJsonRequest(
-                requests, 'PATCH', url, request_data
+                requests, 'PATCH', url, requestData
             );
             AjaxHelpers.respondWithError(requests, 400, createErrorMessage(data.valueAttribute, data.validationError));
             // When server returns a validation error
-            expectMessageContains(view, view.indicators.validationError);
+            expectMessageContains(view, view.indicator_html.validationError);
             expectMessageContains(view, data.validationError);
             expect(view.el).toHaveClass('mode-edit');
 
             view.$(data.valueInputSelector).val('').change();
             // When the value in the field is changed
             expect(view.fieldValue()).toBe(data.defaultValue);
-            request_data[data.valueAttribute] = data.defaultValue;
+            requestData[data.valueAttribute] = data.defaultValue;
             AjaxHelpers.expectJsonRequest(
-                requests, 'PATCH', url, request_data
+                requests, 'PATCH', url, requestData
             );
             AjaxHelpers.respondWithNoContent(requests);
             // When server returns success.
@@ -236,7 +237,7 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
             }
         };
 
-        var verifyTextField = function (view, data, requests) {
+        var verifyTextField = function(view, data, requests) {
             verifyEditableField(view, _.extend({
                     valueSelector: '.u-field-value',
                     valueInputSelector: '.u-field-value > input'
@@ -244,7 +245,7 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
             ), requests);
         };
 
-        var verifyDropDownField = function (view, data, requests) {
+        var verifyDropDownField = function(view, data, requests) {
             verifyEditableField(view, _.extend({
                     valueSelector: '.u-field-value',
                     valueInputSelector: '.u-field-value > select'
