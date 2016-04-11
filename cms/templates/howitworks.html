@@ -1,5 +1,5 @@
-<%inherit file="base.html" />
 <%page expression_filter="h"/>
+<%inherit file="base.html" />
 <%def name="online_help_token()"><% return "welcome" %></%def>
 <%namespace name='static' file='static_content.html'/>
 <%!
@@ -16,10 +16,11 @@
 <div class="wrapper-content-header wrapper">
   <section class="content content-header">
     <header>
-      <h1>
-          <span class="wrapper-text-welcome">${_("Welcome to ")}</span>
-          <span>${settings.STUDIO_NAME}</span>
-      </h1>
+      <h1><span class="wrapper-text-welcome">${Text(_("Welcome to {studio_name}")).format(
+        studio_name=HTML(u'</span><span class="logo">{studio_name}</span>').format(
+          studio_name=settings.STUDIO_NAME
+        )
+      )}</h1>
       <p class="tagline">${_("{studio_name} helps manage your online courses, so you can focus on teaching them").format(
         studio_name=settings.STUDIO_SHORT_NAME
       )}</p>
@@ -162,7 +163,7 @@
 
     <ul class="list-actions">
       <li class="action-item">
-        <a href="${reverse('signup')}" class="action action-primary">${_("Sign Up & Start Making an {platform_name} Course").format(platform_name=settings.PLATFORM_NAME)}</a>
+        <a href="${reverse('signup')}" class="action action-primary">${_("Sign Up & Start Making {platform_name} Course").format(platform_name=settings.PLATFORM_NAME)}</a>
       </li>
       <li class="action-item">
         <a href="${reverse('login')}" class="action action-secondary">${_("Already have a {studio_name} Account? Sign In").format(studio_name=settings.STUDIO_SHORT_NAME)}</a>

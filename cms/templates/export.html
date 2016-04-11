@@ -1,5 +1,5 @@
-<%inherit file="base.html" />
 <%page expression_filter="h"/>
+<%inherit file="base.html" />
 <%def name="online_help_token()">
 <% 
 if library:
@@ -64,9 +64,9 @@ else:
           <h2 class="title">${_("About Exporting Libraries")}</h2>
           <div class="copy">
               ## Translators: ".tar.gz" is a file extension, and should not be translated
-              <p>${Text(_("You can export libraries and edit them outside of {studio_name}. The exported file is a .tar.gz file (that is, a .tar file compressed with GNU Zip) that contains the library structure and content. You can also re-import libraries that you've exported.").format(
+              <p>${_("You can export libraries and edit them outside of {studio_name}. The exported file is a .tar.gz file (that is, a .tar file compressed with GNU Zip) that contains the library structure and content. You can also re-import libraries that you've exported.").format(
           studio_name=settings.STUDIO_SHORT_NAME,
-          ))}</p>
+          )}</p>
           </div>
         %else:
           <h2 class="title">${_("About Exporting Courses")}</h2>
