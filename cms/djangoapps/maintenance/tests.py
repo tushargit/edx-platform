@@ -68,8 +68,7 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
 		for (url_name, (role, has_access))
 		in itertools.product((
 			"maintenance:maintenance",
-			"maintenance:force_publish_course",
-			"maintenance:show_orphans"
+			"maintenance:force_publish_course"
 		), (
 			(GlobalStaff, True),
 			(None, False)
@@ -94,8 +93,7 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
 
 	@ddt.data(
 		"maintenance:maintenance",
-		"maintenance:force_publish_course",
-		"maintenance:show_orphans"
+		"maintenance:force_publish_course"
 	)
 	def test_require_login(self, url_name):
 		url = reverse(url_name)

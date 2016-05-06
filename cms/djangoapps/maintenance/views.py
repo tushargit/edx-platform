@@ -21,12 +21,6 @@ from util.views import require_global_staff
 log = logging.getLogger(__name__)
 
 MAINTENANCE_COMMANDS = {
-    "show_orphans": {
-        "url": reverse_lazy("maintenance:show_orphans"),
-        "name": _("Print Orphans"),
-        "slug": "show_orphans",
-        "description": _("View orphans."),
-    },
     "force_publish_course": {
         "url": reverse_lazy("maintenance:force_publish_course"),
         "name": _("Force Publish Course"),
@@ -209,64 +203,6 @@ class ForcePublishCourseView(MaintenanceBaseView):
             "%s %s published course %s forcefully.",
             msg,
             request.user,
-            course_id,
-            exc_info=True
-        )
-        return self.render_response()
-
-
-class ShowOrphansView(MaintenanceBaseView):
-    """
-    View for viewing course orphans, used by the escalation team.
-    """
-
-    def __init__(self):
-        super(ShowOrphansView, self).__init__(MAINTENANCE_COMMANDS['show_orphans'])
-        self.context.update({
-            'orphans': [],
-            'form_data': {
-                'course_id': '',
-                'branch': 'draft'
-            }
-        })
-
-    @method_decorator(require_global_staff)
-    def post(self, request):
-        """Process and return course orphans."""
-        course_id = request.POST.get('course-id')
-        branch = request.POST.get('draft-published-branch', 'draft')
-
-        course_usage_key = self.validate_course_key(course_id, branch)
-
-        self.context.update({
-            'form_data': {
-                'course_id': course_id,
-                'branch': branch
-            },
-        })
-
-        if self.context['error']:
-            return self.render_response()
-
-        orphans = modulestore().get_orphans(course_usage_key)
-        if not orphans:
-            msg = "No orphans found."
-            self.context['msg'] = _(msg)
-            logging.info(
-                "%s %s tried to find %s branch orphans for course %s.",
-                msg,
-                request.user,
-                branch,
-                course_id,
-                exc_info=True
-            )
-            self.render_response()
-
-        self.context['orphans'] = orphans
-        logging.info(
-            "%s found %s branch orphans for course %s.",
-            request.user,
-            branch,
             course_id,
             exc_info=True
         )
