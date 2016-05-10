@@ -68,6 +68,12 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
         in itertools.product((
             "maintenance:maintenance",
             "maintenance:force_publish_course"
+            "maintenance:maintenance",
+            "maintenance:force_publish_course"
+            "maintenance:maintenance",
+            "maintenance:force_publish_course"
+            "maintenance:maintenance",
+            "maintenance:force_publish_course"
         ), (
             (GlobalStaff, True),
             (None, False)

@@ -84,6 +84,7 @@ class MaintenanceBaseView(View):
             self.context['error'] = True
             self.context['msg'] = COURSE_KEY_ERROR_MESSAGES['empty_course_key']
             return course_usage_key
+
         try:
             if branch == "published":
                 course_key += "+branch@published-branch"
