@@ -13,7 +13,8 @@ from openedx.core.djangolib.markup import Text, HTML
                 <ol class="list-input">
                     <li class="field text required" id="field-course-name">
                         <label for="course-id">${_("Course ID")}</label>
-                        <input id="course-id" type="text" name="course-id" aria-required="true" value="${form_data['course_id']}"
+                        <input id="course-id" type="text" name="course-id" aria-required="true"
+                               value="${form_data['course_id']}"
                                placeholder="${_('e.g. edX+DemoX+Demo_Course')}"/>
                         % if error:
                         <div class="error">${msg}</div>
@@ -36,7 +37,8 @@ from openedx.core.djangolib.markup import Text, HTML
         <div class="actions">
             <button type="submit" class="action action-primary" aria-disabled="true">${_("Force Publish Course")}
             </button>
-            <a href="${command['url']}" class="action action-secondary action-cancel" data-tooltip="${_('Reset values')}">${_("Reset")}</a>
+            <a href="${command['url']}" class="action action-secondary action-cancel"
+               data-tooltip="${_('Reset values')}">${_("Reset")}</a>
         </div>
     </form>
     % if current_versions:
@@ -51,21 +53,22 @@ from openedx.core.djangolib.markup import Text, HTML
             </div>
             <div class="main-output">
                 ${_("Published branch version {published} changed to draft branch version {draft}").format(
-                published=current_versions['published-branch'], draft=current_versions['draft-branch']
+                    published=current_versions['published-branch'],
+                    draft=current_versions['draft-branch']
                 )}
             </div>
         </article>
         % elif updated_versions:
         <article>
             <div class="main-output">
-            ${Text(_("({strong_start}Success!{strong_end}) Published the course {course_id} forcefully.")).format(
-            course_id=form_data['course_id'],
-            strong_start=HTML('<strong>'),
-                strong_end=HTML('</strong>'),
-            )}
-            ${_("Now published and draft branch have same version : {version}").format(
-            version=updated_versions['published-branch']
-            )}
+                ${Text(_("{strong_start}Success!{strong_end} Published the course {course_id} forcefully.")).format(
+                    course_id=form_data['course_id'],
+                    strong_start=HTML('<strong>'),
+                    strong_end=HTML('</strong>'),
+                )}
+                ${_("Now published and draft branch have same version : {version}").format(
+                    version=updated_versions['published-branch']
+                )}
             </div>
         </article>
         % endif

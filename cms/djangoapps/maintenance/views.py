@@ -41,7 +41,7 @@ def get_maintenace_urls():
     url_list = []
     for key, val in MAINTENANCE_COMMANDS.items():
         url_list.append(val['url'])
-    return url_list 
+    return url_list
 
 
 class MaintenanceIndexView(View):

@@ -1,3 +1,4 @@
+<%page expression_filter="h"/>
 <%inherit file="base.html" />
 <%namespace name='static' file='../static_content.html'/>
 <%!
@@ -6,11 +7,12 @@ from django.core.urlresolvers import reverse
 %>
 <%block name="title">${_("Maintenance Dashboard")}</%block>
 <%block name="subcontent">
-    <section class="container command-list">
-        <ul>
+<section class="container command-list">
+    <ul>
         % for item in commands:
-            <li><a href='${commands[item]["url"]}'>${unicode(commands[item]["name"])}</a>${unicode(commands[item]["description"])}</li>
+        <li><a href='${commands[item]["url"]}'>${unicode(commands[item]["name"])}</a>${unicode(commands[item]["description"])}
+        </li>
         % endfor
-        </ul>
-    </section>
+    </ul>
+</section>
 </%block>
