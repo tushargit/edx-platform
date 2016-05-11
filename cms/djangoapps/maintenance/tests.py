@@ -40,6 +40,7 @@ class TestMaintenanceIndex(ModuleStoreTestCase):
             self.assertContains(response, url, status_code=200)
 
 
+@ddt.ddt
 class MaintenanceViewTestCase(ModuleStoreTestCase):
     """
     Base class for maintenance view tests.
@@ -63,23 +64,6 @@ class MaintenanceViewTestCase(ModuleStoreTestCase):
         self.assertNotContains(response, '<div class="error">', status_code=200)
         self.assertContains(response, success_message, status_code=200)
 
-    @ddt.data(
-        ('', COURSE_KEY_ERROR_MESSAGES['empty_course_key']),
-        ('edx', COURSE_KEY_ERROR_MESSAGES['invalid_course_key']),
-        ('course-v1:e+d+X', COURSE_KEY_ERROR_MESSAGES['course_key_not_found'])
-    )
-    def test_invalid_course_key_messages(self, course_key, error_message):
-        """
-        Test all error messages for invalid course keys.
-        """
-        # validate course key contains error message
-        self.verify_error_message(
-            {
-                'course-id': course_key
-            },
-            _(error_message)
-        )
-
     def tearDown(self):
         """
         Reverse the setup
@@ -95,9 +79,7 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
     """
     @ddt.data(get_maintenace_urls())
     @ddt.unpack
-    def test_require_login(self, url_name):
-        url = reverse(url_name)
-
+    def test_require_login(self, url):
         # Log out then try to retrieve the page
         self.client.logout()
         response = self.client.get(url)
@@ -110,37 +92,18 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
 
         self.assertRedirects(response, redirect_url)
 
-    # @ddt.data(*(
-    #     (url_name, role, has_access)
-    #     for (url_name, (role, has_access))
-    #     in itertools.product((
-    #         "maintenance:maintenance",
-    #         "maintenance:force_publish_course"
-    #         "maintenance:maintenance",
-    #         "maintenance:force_publish_course"
-    #         "maintenance:maintenance",
-    #         "maintenance:force_publish_course"
-    #         "maintenance:maintenance",
-    #         "maintenance:force_publish_course"
-    #     ), (
-    #         (GlobalStaff, True),
-    #         (None, False)
-    #     ))
-    # ))
     @ddt.data(get_maintenace_urls())
     @ddt.unpack
-    def test_global_staff_access(self, url_name):
+    def test_global_staff_access(self, url):
         """
         Test that all maintenance app views are accessible to global staff user.
         """
-        url = reverse(url_name)
         response = self.client.get(url)
-
         self.assertEqual(response.status_code, 200)
 
     @ddt.data(get_maintenace_urls())
     @ddt.unpack
-    def test_non_global_staff_access(self, url_name):
+    def test_non_global_staff_access(self, url):
         """
         Test that all maintenance app views are not accessible to non-global-staff user.
         """
@@ -148,9 +111,7 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
         login_success = self.client.login(username=user.username, password='test')
         self.assertTrue(login_success)
 
-        url = reverse(url_name)
         response = self.client.get(url)
-
         self.assertContains(response, _('Must be edX staff to perform this action.'), status_code=403)
 
 
@@ -173,6 +134,24 @@ class TestForcePublish(MaintenanceViewTestCase):
         )
         # verify that course has changes.
         self.assertTrue(self.store.has_changes(self.store.get_item(self.course.location)))
+
+    @ddt.data(
+        ('', COURSE_KEY_ERROR_MESSAGES['empty_course_key']),
+        ('edx', COURSE_KEY_ERROR_MESSAGES['invalid_course_key']),
+        ('course-v1:e+d+X', COURSE_KEY_ERROR_MESSAGES['course_key_not_found']),
+    )
+    @ddt.unpack
+    def test_invalid_course_key_messages(self, course_key, error_message):
+        """
+        Test all error messages for invalid course keys.
+        """
+        # validate course key contains error message
+        self.verify_error_message(
+            {
+                'course-id': course_key
+            },
+            _(error_message)
+        )
 
     def test_non_split_course(self):
         """
