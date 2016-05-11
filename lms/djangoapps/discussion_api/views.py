@@ -26,7 +26,7 @@ from discussion_api.api import (
     update_comment,
     update_thread,
 )
-from discussion_api.forms import CommentListGetForm, ThreadListGetForm, _PaginationForm
+from discussion_api.forms import CommentListGetForm, ThreadListGetForm, CommentGetForm
 from openedx.core.lib.api.parsers import MergePatchParser
 from openedx.core.lib.api.view_utils import DeveloperErrorViewMixin, view_auth_classes
 
@@ -157,9 +157,18 @@ class ThreadViewSet(DeveloperErrorViewMixin, ViewSet):
         * view: "unread" for threads the requesting user has not read, or
             "unanswered" for question threads with no marked answer. Only one
             can be selected.
+        * requested_fields: (list) Indicates which additional fields to return
+          for each thread. (supports 'profile_image')
 
         The topic_id, text_search, and following parameters are mutually
         exclusive (i.e. only one may be specified in a request)
+
+    **GET Thread Parameters**:
+
+        * thread_id: The id of the thread
+
+        * requested_fields: (list) Indicates which additional fields to return
+          for each thread. (supports 'profile_image')
 
     **POST Parameters**:
 
@@ -272,13 +281,15 @@ class ThreadViewSet(DeveloperErrorViewMixin, ViewSet):
             form.cleaned_data["view"],
             form.cleaned_data["order_by"],
             form.cleaned_data["order_direction"],
+            form.cleaned_data["requested_fields"]
         )
 
     def retrieve(self, request, thread_id=None):
         """
         Implements the GET method for thread ID
         """
-        return Response(get_thread(request, thread_id))
+        requested_fields = request.GET.get('requested_fields')
+        return Response(get_thread(request, thread_id, requested_fields))
 
     def create(self, request):
         """
@@ -344,6 +355,9 @@ class CommentViewSet(DeveloperErrorViewMixin, ViewSet):
 
         * page_size: The number of items per page (default is 10, max is 100)
 
+        * requested_fields: (list) Indicates which additional fields to return
+          for each thread. (supports 'profile_image')
+
     **GET Child Comment List Parameters**:
 
         * comment_id (required): The comment to retrieve child comments for
@@ -351,6 +365,9 @@ class CommentViewSet(DeveloperErrorViewMixin, ViewSet):
         * page: The (1-indexed) page to retrieve (default is 1)
 
         * page_size: The number of items per page (default is 10, max is 100)
+
+        * requested_fields: (list) Indicates which additional fields to return
+          for each thread. (supports 'profile_image')
 
 
     **POST Parameters**:
@@ -446,21 +463,23 @@ class CommentViewSet(DeveloperErrorViewMixin, ViewSet):
             form.cleaned_data["thread_id"],
             form.cleaned_data["endorsed"],
             form.cleaned_data["page"],
-            form.cleaned_data["page_size"]
+            form.cleaned_data["page_size"],
+            form.cleaned_data["requested_fields"],
         )
 
     def retrieve(self, request, comment_id=None):
         """
         Implements the GET method for comments against response ID
         """
-        form = _PaginationForm(request.GET)
+        form = CommentGetForm(request.GET)
         if not form.is_valid():
             raise ValidationError(form.errors)
         return get_response_comments(
             request,
             comment_id,
             form.cleaned_data["page"],
-            form.cleaned_data["page_size"]
+            form.cleaned_data["page_size"],
+            form.cleaned_data["requested_fields"],
         )
 
     def create(self, request):

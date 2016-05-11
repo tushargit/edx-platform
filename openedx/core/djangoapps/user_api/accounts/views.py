@@ -10,6 +10,7 @@ from rest_framework import permissions
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
 
 from openedx.core.lib.api.authentication import (
     SessionAuthenticationAllowInactiveUser,
@@ -20,7 +21,7 @@ from .api import get_account_settings, update_account_settings
 from ..errors import UserNotFound, UserNotAuthorized, AccountUpdateError, AccountValidationError
 
 
-class AccountView(APIView):
+class AccountViewSet(ViewSet):
     """
         **Use Cases**
 
@@ -29,6 +30,7 @@ class AccountView(APIView):
 
         **Example Requests**
 
+            GET /api/user/v1/accounts?usernames={username1,username2}[?view=shared]
             GET /api/user/v1/accounts/{username}/[?view=shared]
 
             PATCH /api/user/v1/accounts/{username}/{"key":"value"} "application/merge-patch+json"
@@ -146,7 +148,20 @@ class AccountView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
     parser_classes = (MergePatchParser,)
 
-    def get(self, request, username):
+    def list(self, request):
+        """
+        GET /api/user/v1/accounts?usernames={username1,username2}
+        """
+        usernames = request.GET.get('usernames')
+        try:
+            account_settings = get_account_settings(
+                request, usernames, view=request.query_params.get('view'))
+        except UserNotFound:
+            return Response(status=status.HTTP_403_FORBIDDEN if request.user.is_staff else status.HTTP_404_NOT_FOUND)
+
+        return Response(account_settings)
+
+    def retrieve(self, request, username):
         """
         GET /api/user/v1/accounts/{username}/
         """
@@ -158,7 +173,7 @@ class AccountView(APIView):
 
         return Response(account_settings)
 
-    def patch(self, request, username):
+    def partial_update(self, request, username):
         """
         PATCH /api/user/v1/accounts/{username}/
 
