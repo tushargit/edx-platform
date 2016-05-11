@@ -38,8 +38,11 @@ COURSE_KEY_ERROR_MESSAGES = {
 
 
 def get_maintenace_urls():
+    """
+    Returns all URLs for maintenance app.
+    """
     url_list = []
-    for key, val in MAINTENANCE_COMMANDS.items():
+    for key, val in MAINTENANCE_COMMANDS.items():  # pylint: disable=unused-variable
         url_list.append(val['url'])
     return url_list
 
@@ -58,6 +61,9 @@ class MaintenanceIndexView(View):
 
 
 class MaintenanceBaseView(View):
+    """
+    Base class for Maintenance views.
+    """
 
     template = 'maintenance/container.html'
 
@@ -70,6 +76,7 @@ class MaintenanceBaseView(View):
         }
 
     def render_response(self):
+        """ Renders response."""
         return render_to_response(self.template, self.context)
 
     @method_decorator(require_global_staff)
@@ -188,7 +195,7 @@ class ForcePublishCourseView(MaintenanceBaseView):
             msg = "Could not publish course."
             self.context['msg'] = _(msg)
             logging.info(
-                "%s %s attempted to force publish the course %s.",
+                "%s attempted to force publish the course %s.",
                 request.user,
                 course_id,
                 exc_info=True
