@@ -93,41 +93,6 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
     """
     Tests for access control of maintenance views.
     """
-
-    @ddt.data(*(
-        (url_name, role, has_access)
-        for (url_name, (role, has_access))
-        in itertools.product((
-            "maintenance:maintenance",
-            "maintenance:force_publish_course"
-            "maintenance:maintenance",
-            "maintenance:force_publish_course"
-            "maintenance:maintenance",
-            "maintenance:force_publish_course"
-            "maintenance:maintenance",
-            "maintenance:force_publish_course"
-        ), (
-            (GlobalStaff, True),
-            (None, False)
-        ))
-    ))
-    @ddt.unpack
-    def test_access(self, url_name, role, has_access):
-        user = UserFactory(username='test', email="test@example.com", password="test")
-        login_success = self.client.login(username=user.username, password='test')
-        self.assertTrue(login_success)
-
-        if role is not None:
-            role().add_users(user)
-
-        url = reverse(url_name)
-        response = self.client.get(url)
-
-        if has_access:
-            self.assertEqual(response.status_code, 200)
-        else:
-            self.assertContains(response, _('Must be edX staff to perform this action.'), status_code=403)
-
     @ddt.data(get_maintenace_urls())
     @ddt.unpack
     def test_require_login(self, url_name):
@@ -144,6 +109,49 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
         )
 
         self.assertRedirects(response, redirect_url)
+
+    # @ddt.data(*(
+    #     (url_name, role, has_access)
+    #     for (url_name, (role, has_access))
+    #     in itertools.product((
+    #         "maintenance:maintenance",
+    #         "maintenance:force_publish_course"
+    #         "maintenance:maintenance",
+    #         "maintenance:force_publish_course"
+    #         "maintenance:maintenance",
+    #         "maintenance:force_publish_course"
+    #         "maintenance:maintenance",
+    #         "maintenance:force_publish_course"
+    #     ), (
+    #         (GlobalStaff, True),
+    #         (None, False)
+    #     ))
+    # ))
+    @ddt.data(get_maintenace_urls())
+    @ddt.unpack
+    def test_global_staff_access(self, url_name):
+        """
+        Test that all maintenance app views are accessible to global staff user.
+        """
+        url = reverse(url_name)
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+    @ddt.data(get_maintenace_urls())
+    @ddt.unpack
+    def test_non_global_staff_access(self, url_name):
+        """
+        Test that all maintenance app views are not accessible to non-global-staff user.
+        """
+        user = UserFactory(username='test', email="test@example.com", password="test")
+        login_success = self.client.login(username=user.username, password='test')
+        self.assertTrue(login_success)
+
+        url = reverse(url_name)
+        response = self.client.get(url)
+
+        self.assertContains(response, _('Must be edX staff to perform this action.'), status_code=403)
 
 
 @ddt.ddt

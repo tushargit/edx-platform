@@ -149,8 +149,8 @@ class ForcePublishCourseView(MaintenanceBaseView):
         if self.context['error']:
             return self.render_response()
 
-        owning_store = modulestore()._get_modulestore_for_courselike(course_usage_key)  # pylint: disable=protected-access
-        if not hasattr(owning_store, 'force_publish_course'):
+        source_store = modulestore()._get_modulestore_for_courselike(course_usage_key)  # pylint: disable=protected-access
+        if not hasattr(source_store, 'force_publish_course'):
             msg = "Force publish course does not support old mongo style courses."
             self.context['msg'] = _(msg)
             logging.info(
@@ -188,7 +188,7 @@ class ForcePublishCourseView(MaintenanceBaseView):
             )
             return self.render_response()
 
-        updated_versions = owning_store.force_publish_course(
+        updated_versions = source_store.force_publish_course(
             course_usage_key, request.user, commit=True
         )
         if not updated_versions:
