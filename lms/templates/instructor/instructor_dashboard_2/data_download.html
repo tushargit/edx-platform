@@ -1,9 +1,7 @@
 <%! from django.utils.translation import ugettext as _ %>
 <%page args="section_data"/>
 
-
 <div class="data-download-container action-type-container">
-  <h2>${_("Data Download")}</h2>
   <div class="request-response-error msg msg-error copy" id="data-request-response-error"></div>
 
 
@@ -21,7 +19,7 @@
 %if settings.FEATURES.get('ENABLE_S3_GRADE_DOWNLOADS'):
   <div class="reports-download-container action-type-container">
     <hr>
-    <h2> ${_("Reports")}</h2>
+    <h3 class="hd hd-3">${_("Reports")}</h3>
 
     <p>${_("For large courses, generating some reports can take several hours. When report generation is complete, a link that includes the date and time of generation appears in the table below. These reports are generated in the background, meaning it is OK to navigate away from this page while your report is generating.")}</p>
 
@@ -86,7 +84,7 @@
     <div class="request-response-error msg msg-error copy" id="report-request-response-error"></div>
     <br>
 
-    <p><b>${_("Reports Available for Download")}</b></p>
+    <h3 class="hd hd-3">${_("Reports Available for Download")}</h3>
     <p>
       ${_("The reports listed below are available for download. A link to every report remains available on this page, identified by the UTC date and time of generation. Reports are not deleted, so you will always be able to access previously generated reports from this page.")}
     </p>
@@ -107,7 +105,7 @@
 %if settings.FEATURES.get('ENABLE_INSTRUCTOR_BACKGROUND_TASKS'):
   <div class="running-tasks-container action-type-container">
     <hr>
-    <h2> ${_("Pending Tasks")} </h2>
+    <h3 class="hd hd-3">${_("Pending Tasks")}</h3>
     <div class="running-tasks-section">
       <p>${_("The status for any active tasks appears in a table below.")} </p>
       <br />

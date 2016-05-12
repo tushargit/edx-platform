@@ -83,7 +83,7 @@ from django.core.urlresolvers import reverse
 
 <script language="JavaScript" type="text/javascript"></script>
 
-<section class="container">
+<div class="container">
   <div class="instructor-dashboard-wrapper-2">
         <main id="main" aria-label="Content" tabindex="-1">
         <section class="instructor-dashboard-content-2" id="instructor-dashboard-content">
@@ -93,7 +93,7 @@ from django.core.urlresolvers import reverse
             %endif
           </div>
 
-        <h1>${_("Instructor Dashboard")}</h1>
+        <h1 class="hd hd-1">${_("Instructor Dashboard")}</h1>
 
           %if analytics_dashboard_message:
             <div class="wrapper-msg urgency-low is-shown">
@@ -116,11 +116,12 @@ from django.core.urlresolvers import reverse
         ## to keep this short, sections can be pulled out into their own files
 
         % for section_data in sections:
-          <section id="${ section_data['section_key'] }" class="idash-section">
-            <%include file="${ section_data['section_key'] }.html" args="section_data=section_data" />
+          <section id="${ section_data['section_key'] }" class="idash-section" aria-labelledby="header-${section_data['section_key']}">
+              <h2 class="hd hd-2" id="${ section_data['section_key'] }">${ section_data['section_display_name'] }</h2>
+              <%include file="${ section_data['section_key'] }.html" args="section_data=section_data" />
           </section>
           % endfor
         </section>
         </main>
   </div>
-</section>
+</div>

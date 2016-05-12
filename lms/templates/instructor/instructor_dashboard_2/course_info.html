@@ -2,9 +2,8 @@
 <%page args="section_data"/>
 
 %if settings.FEATURES.get('DISPLAY_ANALYTICS_ENROLLMENTS') or section_data.get('enrollment_message'):
+  <h3 id="header-${section_data['section_key']}" class="hd hd-3">${_("Enrollment Information")}</h3>
   <div class="enrollment-wrapper">
-    <h2>${_("Enrollment Information")}</h2>
-
     %if settings.FEATURES.get('DISPLAY_ANALYTICS_ENROLLMENTS'):
       ## Translators: 'track' refers to the enrollment type ('honor', 'verified', or 'audit')
       <span class="tip">${_("Number of enrollees (admins, staff, and students) by track")}</span>
@@ -35,7 +34,7 @@
 %endif
 
 <div class="basic-wrapper">
-  <h2>${_("Basic Course Information")}</h2>
+  <h3 class="hd hd-3">${_("Basic Course Information")}</h3>
 
   <ul class="list-input">
     <li class="field text is-not-editable" id="field-course-organization">
@@ -110,7 +109,7 @@
 %if settings.FEATURES.get('ENABLE_INSTRUCTOR_BACKGROUND_TASKS'):
   <div class="running-tasks-container action-type-container">
     <hr>
-    <h2> ${_("Pending Tasks")} </h2>
+    <h3 class="hd hd-3"> ${_("Pending Tasks")} </h3>
     <div class="running-tasks-section">
       <p>${_("The status for any active tasks appears in a table below.")} </p>
       <br />
@@ -127,7 +126,7 @@
     <hr>
     <p>
     <div class="toggle-wrapper">
-      <h2 class="title">${_("Course Warnings")}:</h2>
+      <h3 class="hd hd-3 title">${_("Course Warnings")}:</h3>
       <div class="triangle"></div>
     </div>
     <div class="course-errors-visibility-wrapper">
