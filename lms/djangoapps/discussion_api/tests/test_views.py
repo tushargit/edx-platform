@@ -182,6 +182,17 @@ class CourseTopicsViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
             )
         return course_url
 
+    def make_discussion_module(self, topic_id, category, subcategory, **kwargs):
+        """Build a discussion module in self.course"""
+        ItemFactory.create(
+            parent_location=self.course.location,
+            category="discussion",
+            discussion_id=topic_id,
+            discussion_category=category,
+            discussion_target=subcategory,
+            **kwargs
+        )
+
     def test_404(self):
         response = self.client.get(
             reverse("course_topics", kwargs={"course_id": "non/existent/course"})
@@ -224,6 +235,26 @@ class CourseTopicsViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
         with check_mongo_calls(mongo_calls):
             with modulestore().default_store(module_store):
                 self.client.get(course_url)
+
+    def test_discussion_topic(self):
+        """
+        Tests discussion topic details against a requested topic id
+        """
+        topic_id = "courseware-topic-id"
+        self.make_discussion_module(topic_id, "test_category", "test_target")
+        url = "{}?topic_id=courseware-topic-id".format(self.url)
+        response = self.client.get(url)
+        self.assert_response_correct(
+            response,
+            200,
+            {
+                "children": [],
+                "id": topic_id,
+                "thread_list_url": "http://testserver/api/discussion/v1/threads/?course_id=x%2Fy%2Fz"
+                                   "&topic_id=courseware-topic-id",
+                "name": "test_target"
+            }
+        )
 
 
 @attr('shard_3')

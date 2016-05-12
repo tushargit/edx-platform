@@ -40,7 +40,11 @@ from django_comment_common.signals import (
     comment_voted,
     comment_deleted,
 )
-from django_comment_client.utils import get_accessible_discussion_modules, is_commentable_cohorted
+from django_comment_client.utils import (
+    get_accessible_discussion_modules,
+    is_commentable_cohorted,
+    get_discussion_module,
+)
 from lms.djangoapps.discussion_api.pagination import DiscussionAPIPagination
 from lms.lib.comment_client.comment import Comment
 from lms.lib.comment_client.thread import Thread
@@ -241,6 +245,20 @@ def get_course_topics(request, course_key):
     return {
         "courseware_topics": courseware_topics,
         "non_courseware_topics": non_courseware_topics,
+    }
+
+
+def get_course_topic(request, course_key, topic_id):
+    """
+    Returns details of discussion topic against topic_id
+    """
+    course = _get_course(course_key, request.user)
+    discussion_module = get_discussion_module(course, request.user, topic_id)
+    return {
+        "id": discussion_module.discussion_id,
+        "name": discussion_module.discussion_target,
+        "thread_list_url": get_thread_list_url(request, course_key, [discussion_module.discussion_id]),
+        "children": [],
     }
 
 

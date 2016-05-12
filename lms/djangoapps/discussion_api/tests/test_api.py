@@ -34,6 +34,7 @@ from discussion_api.api import (
     update_comment,
     update_thread,
     get_thread,
+    get_course_topic,
 )
 from discussion_api.exceptions import DiscussionDisabledError, ThreadNotFoundError, CommentNotFoundError
 from discussion_api.tests.utils import (
@@ -482,6 +483,24 @@ class GetCourseTopicsTest(UrlResetMixin, ModuleStoreTestCase):
             ],
         }
         self.assertEqual(staff_actual, staff_expected)
+
+    def test_discussion_topic(self):
+        """
+        Tests discussion topic details against a requested topic id
+        """
+        topic_id = "courseware-topic-id"
+        self.make_discussion_module(topic_id, "test_category", "test_target")
+        actual = get_course_topic(self.request, self.course.id, topic_id)
+        self.assertEqual(
+            actual,
+            {
+                "children": [],
+                "id": topic_id,
+                "thread_list_url": "http://testserver/api/discussion/v1/threads/?course_id=x%2Fy%2Fz"
+                                   "&topic_id=courseware-topic-id",
+                "name": "test_target"
+            }
+        )
 
 
 @attr('shard_2')
