@@ -5,6 +5,7 @@ from collections import defaultdict
 
 from boto.s3.key import Key
 from django.core.management.base import BaseCommand
+from request_cache.middleware import RequestCache
 from xmodule.modulestore.django import modulestore
 
 log = logging.getLogger(__name__)
@@ -38,6 +39,10 @@ class ModuleStoreSerializer(object):
                 )
             )
             self.dump_course_items_to_csv(course.id)
+
+            # clear RequestCache after every course to avoid a memory leak
+            # where the modulestore's request cache never clears.
+            RequestCache.clear_request_cache()
 
     def dump_course_items_to_csv(self, course_key):
         """
