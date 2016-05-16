@@ -11,6 +11,7 @@ from django.views.generic import View
 from edxmako.shortcuts import render_to_response
 from opaque_keys import InvalidKeyError
 from opaque_keys.edx.keys import CourseKey
+from xmodule.modulestore import ModuleStoreEnum
 from xmodule.modulestore.django import modulestore
 from xmodule.modulestore.exceptions import ItemNotFoundError
 
@@ -49,7 +50,9 @@ def get_maintenace_urls():
 
 class MaintenanceIndexView(View):
     """
-    View for maintenance dashboard, used by the escalation team.
+    Index view for maintenance dashboard, used by the escalation team.
+
+    This view lists some commands/tasks that can be used to dry run or execute directly.
     """
 
     @method_decorator(require_global_staff)
@@ -76,7 +79,7 @@ class MaintenanceBaseView(View):
         }
 
     def render_response(self):
-        """ Renders response."""
+        """ A short method to render_to_response that renders response."""
         return render_to_response(self.template, self.context)
 
     @method_decorator(require_global_staff)
@@ -84,38 +87,35 @@ class MaintenanceBaseView(View):
         """Render get view."""
         return self.render_response()
 
-    def validate_course_key(self, course_key, branch=None):
-        """Validates course_key and updates context, returns usage_key, that would be used by maintenance app views."""
-        course_usage_key = None
+    def validate_course_key(self, course_key, branch=ModuleStoreEnum.BranchName.draft):
+        """
+        Validates the course_key that would be used by maintenance app views.
+
+        Arguments:
+            course_key (string): a course key
+            branch: a course locator branch, default value is ModuleStoreEnum.BranchName.draft .
+                    values can be either ModuleStoreEnum.BranchName.draft or ModuleStoreEnum.BranchName.published.
+
+        Returns:
+            course_usage_key (CourseLocator): course usage locator
+        """
         if not course_key:
-            self.context['error'] = True
-            self.context['msg'] = COURSE_KEY_ERROR_MESSAGES['empty_course_key']
-            return course_usage_key
+            raise Exception(COURSE_KEY_ERROR_MESSAGES['empty_course_key'])
 
-        try:
-            if branch == "published":
-                course_key += "+branch@published-branch"
+        course_usage_key = CourseKey.from_string(course_key)
 
-            course_usage_key = CourseKey.from_string(course_key)
-            if not modulestore().has_course(course_usage_key):
-                raise ItemNotFoundError
+        if not modulestore().has_course(course_usage_key):
+            raise ItemNotFoundError(COURSE_KEY_ERROR_MESSAGES['course_key_not_found'])
 
-            self.context.update({
-                'error': False,
-                'msg': ''
-            })
-        except InvalidKeyError:
-            self.context['error'] = True
-            self.context['msg'] = COURSE_KEY_ERROR_MESSAGES['invalid_course_key']
-        except ItemNotFoundError:
-            self.context['error'] = True
-            self.context['msg'] = COURSE_KEY_ERROR_MESSAGES['course_key_not_found']
+        # get branch specific locator
+        course_usage_key = course_usage_key.for_branch(branch)
+
         return course_usage_key
 
 
 class ForcePublishCourseView(MaintenanceBaseView):
     """
-    View for force publish state of the course, used by the escalation team.
+    View for force publishing state of the course, used by the escalation team.
     """
 
     def __init__(self):
@@ -132,12 +132,17 @@ class ForcePublishCourseView(MaintenanceBaseView):
     @transaction.atomic
     @method_decorator(require_global_staff)
     def post(self, request):
-        """Force publish a course."""
+        """
+        Force publishes a course.
+
+        Arguments:
+            course_id (string): a request parameter containing course id
+            is_dry_run (string): a request parameter containing dry run value.
+                                 It is obtained from checkbox so it has either values 'on' or ''.
+        """
 
         course_id = request.POST.get('course-id')
         is_dry_run = bool(request.POST.get('dry-run'))
-
-        course_usage_key = self.validate_course_key(course_id)
 
         self.context.update({
             'form_data': {
@@ -146,16 +151,27 @@ class ForcePublishCourseView(MaintenanceBaseView):
             }
         })
 
+        try:
+            course_usage_key = self.validate_course_key(course_id)
+        except InvalidKeyError:
+            self.context['error'] = True
+            self.context['msg'] = COURSE_KEY_ERROR_MESSAGES['invalid_course_key']
+        except ItemNotFoundError as e:
+            self.context['error'] = True
+            self.context['msg'] = e.message
+        except Exception as e:
+            self.context['error'] = True
+            self.context['msg'] = e.message
+
         if self.context['error']:
             return self.render_response()
 
         source_store = modulestore()._get_modulestore_for_courselike(course_usage_key)  # pylint: disable=protected-access
         if not hasattr(source_store, 'force_publish_course'):
-            msg = "Force publish course does not support old mongo style courses."
-            self.context['msg'] = _(msg)
+            self.context['msg'] = _("Force publish course does not support old mongo style courses.")
             logging.info(
-                "%s %s attempted to force publish the course %s.",
-                msg,
+                "Force publish course does not support old mongo style courses. \
+                %s attempted to force publish the course %s.",
                 request.user,
                 course_id,
                 exc_info=True
@@ -164,13 +180,11 @@ class ForcePublishCourseView(MaintenanceBaseView):
 
         current_versions = get_course_versions(course_id)
 
-        # if publish and draft were different
+        # if publish and draft are NOT different
         if current_versions['published-branch'] == current_versions['draft-branch']:
-            msg = "Course is already in published state."
-            self.context['msg'] = _(msg)
+            self.context['msg'] = _("Course is already in published state.")
             logging.info(
-                "%s %s attempted to force publish the course %s.",
-                msg,
+                "Course is already in published state. %s attempted to force publish the course %s.",
                 request.user,
                 course_id,
                 exc_info=True
@@ -187,15 +201,13 @@ class ForcePublishCourseView(MaintenanceBaseView):
                 exc_info=True
             )
             return self.render_response()
-
         updated_versions = source_store.force_publish_course(
             course_usage_key, request.user, commit=True
         )
         if not updated_versions:
-            msg = "Could not publish course."
-            self.context['msg'] = _(msg)
+            self.context['msg'] = _("Could not publish course.")
             logging.info(
-                "%s attempted to force publish the course %s.",
+                "Could not publish course. %s attempted to force publish the course %s.",
                 request.user,
                 course_id,
                 exc_info=True

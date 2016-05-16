@@ -45,14 +45,11 @@ from openedx.core.djangolib.markup import Text, HTML
     <div class="result">
         % if form_data['is_dry_run']:
         <article>
-            <div class="dry-run">
-                ${Text(_("You have {strong_start}dry run{strong_end} the course. Following course versions would be changed :")).format(
-                    strong_start=HTML('<strong>'),
-                    strong_end=HTML('</strong>'),
-                )}
+            <div class="head-output">
+                ${_('You have done a dry run of force publishing the course. Nothing has changed. Had you run it, the following course versions would have been change.')}
             </div>
             <div class="main-output">
-                ${_("Published branch version {published} changed to draft branch version {draft}").format(
+                ${_("The published branch version, {published}, was reset to the draft branch version, {draft}.").format(
                     published=current_versions['published-branch'],
                     draft=current_versions['draft-branch']
                 )}
@@ -60,15 +57,16 @@ from openedx.core.djangolib.markup import Text, HTML
         </article>
         % elif updated_versions:
         <article>
+            <div class="head-output">
+            ${_("Forced published the course {course_id}.").format(
+                course_id=form_data['course_id']
+            )}
+            </div>
             <div class="main-output">
-                ${Text(_("{strong_start}Success!{strong_end} Published the course {course_id} forcefully.")).format(
-                    course_id=form_data['course_id'],
-                    strong_start=HTML('<strong>'),
-                    strong_end=HTML('</strong>'),
-                )}
-                ${_("Now published and draft branch have same version : {version}").format(
-                    version=updated_versions['published-branch']
-                )}
+            ${_("The published branch version, {published}, was reset to the draft branch version, {draft}.").format(
+                published=current_versions['published-branch'],
+                draft=current_versions['draft-branch']
+            )}
             </div>
         </article>
         % endif
