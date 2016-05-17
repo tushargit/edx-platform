@@ -1,4 +1,4 @@
-import csv
+import unicodecsv
 import logging
 import os
 from collections import defaultdict
@@ -94,7 +94,7 @@ class ModuleStoreSerializer(object):
             file_exists = os.path.isfile(filename)
 
             with open(filename, 'a') as csvfile:
-                writer = csv.writer(csvfile)
+                writer = unicodecsv.writer(csvfile)
                 if not file_exists:
                     writer.writerow(field_names)
                 writer.writerows(rows)
@@ -116,7 +116,7 @@ class ModuleStoreSerializer(object):
         file_exists = os.path.isfile(filename)
         with open(filename, 'a') as csvfile:
             # if this file hasn't been written to yet, add a header
-            writer = csv.writer(csvfile)
+            writer = unicodecsv.writer(csvfile)
             if not file_exists:
                 writer.writerow([':START_ID', ':END_ID'])
 
@@ -127,18 +127,12 @@ class ModuleStoreSerializer(object):
         Args:
             value: the string we want to normalize
 
-        Returns: a string that's been encoded to ascii and stripped quotes
+        Returns: a string that neo4j won't reject
 
+        Lifted from https://github.com/mdamien/stackoverflow-neo4j/blob/master/to_csv.py
         """
-        if value is None:
-            value = 'NULL'
-        value = unicode(value).encode('utf-8')
-        # neo4j for some reason fails on import if a field begins
-        # with a quotation mark
-        while value.startswith('"') or value.startswith("'"):
-            value = value.strip('"')
-            value = value.strip("'")
-
+        if isinstance(value, basestring):
+            return value.replace('\r\n','\n').replace('\n\r','\n').replace('\\','').replace('"','')
         return value
 
     def get_field_names_for_type(self, block_type, serialized_xblock):

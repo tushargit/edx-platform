@@ -1,5 +1,5 @@
  # coding=utf-8
-import csv
+import unicodecsv
 import os
 import shutil
 from tempfile import mkdtemp
@@ -71,13 +71,14 @@ class TestModuleStoreSerializer(SharedModuleStoreTestCase):
         self.assertFalse(serialized_course['self_paced'])
 
     @ddt.data(
-        (None, 'NULL'), ("'single'", "single"), ('"double', 'double')
+        (True, True),
+        ("'single'", "'single'"),
+        ('return: \r\n backslash: \\ doublequote: "', 'return: \n backslash:  doublequote: '),
     )
     @ddt.unpack
     def test_normalize_value(self, input_value, expected_value):
         """
-        Test that strings are stripped of quotes and that each `None`
-        is converted to a 'NULL'.
+        Test that strings are transformed into a neo4j-friendly format
         """
         normalized_value = self.modulestore_serializer.normalize_value(input_value)
         self.assertEqual(normalized_value, expected_value)
@@ -122,7 +123,7 @@ class TestModuleStoreSerializer(SharedModuleStoreTestCase):
         filename = self.csv_dir + "/{block_type}.csv".format(block_type=block_type)
         # import ipdb; ipdb.set_trace()
         with open(filename) as block_type_csvfile:
-            rows = list(csv.reader(block_type_csvfile))
+            rows = list(unicodecsv.reader(block_type_csvfile))
 
         header = rows[0]
         # assert the first header is the item's label
@@ -147,7 +148,7 @@ class TestModuleStoreSerializer(SharedModuleStoreTestCase):
         )
         filename = self.csv_dir + "/relationships.csv"
         with open(filename) as relationships_csvfile:
-            rows = list(csv.reader(relationships_csvfile))
+            rows = list(unicodecsv.reader(relationships_csvfile))
 
         self.assertEqual(len(rows), 8)
         header = rows[0]
