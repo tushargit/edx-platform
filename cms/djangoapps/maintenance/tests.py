@@ -4,17 +4,17 @@ Tests for the maintenance app views.
 import ddt
 
 from django.core.urlresolvers import reverse
-from student.tests.factories import AdminFactory, UserFactory
 from xmodule.modulestore import ModuleStoreEnum
-from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase
+from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
 
 from contentstore.management.commands.utils import get_course_versions
+from student.tests.factories import AdminFactory, UserFactory
 
 from .views import COURSE_KEY_ERROR_MESSAGES, get_maintenace_urls
 
 
-class TestMaintenanceIndex(SharedModuleStoreTestCase):
+class TestMaintenanceIndex(ModuleStoreTestCase):
     """
     Tests for maintenance index view.
     """
@@ -37,7 +37,7 @@ class TestMaintenanceIndex(SharedModuleStoreTestCase):
 
 
 @ddt.ddt
-class MaintenanceViewTestCase(SharedModuleStoreTestCase):
+class MaintenanceViewTestCase(ModuleStoreTestCase):
     """
     Base class for maintenance view tests.
     """
@@ -66,7 +66,7 @@ class MaintenanceViewTestCase(SharedModuleStoreTestCase):
         Reverse the setup
         """
         self.client.logout()
-        SharedModuleStoreTestCase.tearDown(self)
+        ModuleStoreTestCase.tearDown(self)
 
 
 @ddt.ddt

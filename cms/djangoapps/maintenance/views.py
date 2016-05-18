@@ -3,6 +3,7 @@ Views for the maintenance app.
 """
 import logging
 from django.db import transaction
+from django.core.validators import ValidationError
 from django.core.urlresolvers import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
@@ -21,7 +22,8 @@ from util.views import require_global_staff
 
 log = logging.getLogger(__name__)
 
-MAINTENANCE_COMMANDS = {
+# This dict maintains all the views that will be used Maintenance app.
+MAINTENANCE_VIEWS = {
     "force_publish_course": {
         "url": reverse_lazy("maintenance:force_publish_course"),
         "name": _("Force Publish Course"),
@@ -43,7 +45,7 @@ def get_maintenace_urls():
     Returns all URLs for maintenance app.
     """
     url_list = []
-    for key, val in MAINTENANCE_COMMANDS.items():  # pylint: disable=unused-variable
+    for key, val in MAINTENANCE_VIEWS.items():  # pylint: disable=unused-variable
         url_list.append(val['url'])
     return url_list
 
@@ -59,7 +61,7 @@ class MaintenanceIndexView(View):
     def get(self, request):
         """Render the maintenance index view. """
         return render_to_response('maintenance/index.html', {
-            "commands": MAINTENANCE_COMMANDS,
+            "commands": MAINTENANCE_VIEWS,
         })
 
 
@@ -100,7 +102,7 @@ class MaintenanceBaseView(View):
             course_usage_key (CourseLocator): course usage locator
         """
         if not course_key:
-            raise Exception(COURSE_KEY_ERROR_MESSAGES['empty_course_key'])
+            raise ValidationError(COURSE_KEY_ERROR_MESSAGES['empty_course_key'])
 
         course_usage_key = CourseKey.from_string(course_key)
 
@@ -119,7 +121,7 @@ class ForcePublishCourseView(MaintenanceBaseView):
     """
 
     def __init__(self):
-        super(ForcePublishCourseView, self).__init__(MAINTENANCE_COMMANDS['force_publish_course'])
+        super(ForcePublishCourseView, self).__init__(MAINTENANCE_VIEWS['force_publish_course'])
         self.context.update({
             'current_versions': [],
             'updated_versions': [],
@@ -156,12 +158,12 @@ class ForcePublishCourseView(MaintenanceBaseView):
         except InvalidKeyError:
             self.context['error'] = True
             self.context['msg'] = COURSE_KEY_ERROR_MESSAGES['invalid_course_key']
-        except ItemNotFoundError as e:
+        except ItemNotFoundError as exc:
             self.context['error'] = True
-            self.context['msg'] = e.message
-        except Exception as e:
+            self.context['msg'] = exc.message
+        except ValidationError as exc:
             self.context['error'] = True
-            self.context['msg'] = e.message
+            self.context['msg'] = exc.message
 
         if self.context['error']:
             return self.render_response()
