@@ -110,6 +110,7 @@ from opaque_keys.edx.keys import CourseKey, UsageKey
 from opaque_keys.edx.locations import SlashSeparatedCourseKey
 from opaque_keys import InvalidKeyError
 from openedx.core.djangoapps.course_groups.cohorts import is_course_cohorted
+from openedx.core.djangolib.markup import HTML
 
 log = logging.getLogger(__name__)
 
@@ -2295,10 +2296,9 @@ def list_report_downloads(_request, course_id):
     """
     course_id = SlashSeparatedCourseKey.from_deprecated_string(course_id)
     report_store = ReportStore.from_config(config_name='GRADES_DOWNLOAD')
-
     response_payload = {
         'downloads': [
-            dict(name=name, url=url, link='<a href="{}">{}</a>'.format(url, name))
+            dict(name=name, url=url, link=HTML('<a href="{}">{}</a>').format(url, name))
             for name, url in report_store.links_for(course_id)
         ]
     }
@@ -2318,7 +2318,7 @@ def list_financial_report_downloads(_request, course_id):
 
     response_payload = {
         'downloads': [
-            dict(name=name, url=url, link='<a href="{}">{}</a>'.format(url, name))
+            dict(name=name, url=url, link=HTML('<a href="{}">{}</a>').format(url, name))
             for name, url in report_store.links_for(course_id)
         ]
     }
