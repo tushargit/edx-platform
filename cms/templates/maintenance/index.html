@@ -3,14 +3,13 @@
 <%namespace name='static' file='../static_content.html'/>
 <%!
 from django.utils.translation import ugettext as _
-from django.core.urlresolvers import reverse
 %>
 <%block name="title">${_("Maintenance Dashboard")}</%block>
-<%block name="subcontent">
-<section class="container command-list">
+<%block name="viewcontent">
+<section class="container maintenance-content">
     <ul>
-        % for item in commands:
-        <li><a href='${commands[item]["url"]}'>${unicode(commands[item]["name"])}</a>${unicode(commands[item]["description"])}
+        % for view in views.values():
+        <li><a href='${view["url"]}'>${unicode(view["name"])}</a>${unicode(view["description"])}
         </li>
         % endfor
     </ul>

@@ -1,18 +1,14 @@
 <%page expression_filter="h"/>
 <%inherit file="base.html" />
 <%namespace name='static' file='../static_content.html'/>
-<%!
-from django.utils.translation import ugettext as _
-from django.core.urlresolvers import reverse
-%>
-<%block name="title">${command['name']}</%block>
-<%block name="commandtitle">
+<%block name="title">${view['name']}</%block>
+<%block name="viewtitle">
 <h3 class="info-course">
-    <span>${command['name']}</span>
+    <span>${view['name']}</span>
 </h3>
 </%block>
-<%block name="subcontent">
-<section class="container command-list">
-    <%include file="_${command['slug']}.html" />
+<%block name="viewcontent">
+<section class="container maintenance-content">
+    <%include file="_${view['slug']}.html" />
 </section>
 </%block>

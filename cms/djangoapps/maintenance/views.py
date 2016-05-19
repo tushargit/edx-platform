@@ -20,7 +20,7 @@ from contentstore.management.commands.utils import get_course_versions
 from util.views import require_global_staff
 
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # This dict maintains all the views that will be used Maintenance app.
 MAINTENANCE_VIEWS = {
@@ -40,19 +40,9 @@ COURSE_KEY_ERROR_MESSAGES = {
 }
 
 
-def get_maintenace_urls():
-    """
-    Returns all URLs for maintenance app.
-    """
-    url_list = []
-    for key, val in MAINTENANCE_VIEWS.items():  # pylint: disable=unused-variable
-        url_list.append(val['url'])
-    return url_list
-
-
 class MaintenanceIndexView(View):
     """
-    Index view for maintenance dashboard, used by the escalation team.
+    Index view for maintenance dashboard, used by global staff.
 
     This view lists some commands/tasks that can be used to dry run or execute directly.
     """
@@ -61,7 +51,7 @@ class MaintenanceIndexView(View):
     def get(self, request):
         """Render the maintenance index view. """
         return render_to_response('maintenance/index.html', {
-            "commands": MAINTENANCE_VIEWS,
+            "views": MAINTENANCE_VIEWS,
         })
 
 
@@ -72,9 +62,9 @@ class MaintenanceBaseView(View):
 
     template = 'maintenance/container.html'
 
-    def __init__(self, command=None):
+    def __init__(self, view=None):
         self.context = {
-            'command': command if command else '',
+            'view': view if view else '',
             'form_data': {},
             'error': False,
             'msg': ''
@@ -117,7 +107,10 @@ class MaintenanceBaseView(View):
 
 class ForcePublishCourseView(MaintenanceBaseView):
     """
-    View for force publishing state of the course, used by the escalation team.
+    View for force publishing state of the course, used by the global staff.
+
+    This view uses `force_publish_course` method of modulestore which publishes the draft state of the course. After the course
+    has been forced published, both draft and publish draft point to same location.
     """
 
     def __init__(self):
@@ -135,14 +128,14 @@ class ForcePublishCourseView(MaintenanceBaseView):
     @method_decorator(require_global_staff)
     def post(self, request):
         """
-        Force publishes a course.
+        This method force publishes a course if dry-run argument is not selected. If dry-run is selected, this view
+        shows possible outcome if the `force_publish_course` modulestore method is executed.
 
         Arguments:
             course_id (string): a request parameter containing course id
             is_dry_run (string): a request parameter containing dry run value.
                                  It is obtained from checkbox so it has either values 'on' or ''.
         """
-
         course_id = request.POST.get('course-id')
         is_dry_run = bool(request.POST.get('dry-run'))
 
@@ -170,9 +163,9 @@ class ForcePublishCourseView(MaintenanceBaseView):
 
         source_store = modulestore()._get_modulestore_for_courselike(course_usage_key)  # pylint: disable=protected-access
         if not hasattr(source_store, 'force_publish_course'):
-            self.context['msg'] = _("Force publish course does not support old mongo style courses.")
-            logging.info(
-                "Force publish course does not support old mongo style courses. \
+            self.context['msg'] = _("Force publishing course is not supported with old mongo courses.")
+            logger.warning(
+                "Force publishing course is not supported with old mongo courses. \
                 %s attempted to force publish the course %s.",
                 request.user,
                 course_id,
@@ -185,7 +178,7 @@ class ForcePublishCourseView(MaintenanceBaseView):
         # if publish and draft are NOT different
         if current_versions['published-branch'] == current_versions['draft-branch']:
             self.context['msg'] = _("Course is already in published state.")
-            logging.info(
+            logger.warning(
                 "Course is already in published state. %s attempted to force publish the course %s.",
                 request.user,
                 course_id,
@@ -196,32 +189,24 @@ class ForcePublishCourseView(MaintenanceBaseView):
         self.context['current_versions'] = current_versions
 
         if is_dry_run:
-            logging.info(
+            logger.info(
                 "%s dry ran force publish the course %s.",
                 request.user,
                 course_id,
                 exc_info=True
             )
             return self.render_response()
+
         updated_versions = source_store.force_publish_course(
             course_usage_key, request.user, commit=True
         )
-        if not updated_versions:
-            self.context['msg'] = _("Could not publish course.")
-            logging.info(
-                "Could not publish course. %s attempted to force publish the course %s.",
-                request.user,
-                course_id,
-                exc_info=True
-            )
-            return self.render_response()
 
         self.context['updated_versions'] = updated_versions
         msg = "Published branch version changed from {published_prev} to {published_new}.".format(
             published_prev=current_versions['published-branch'],
             published_new=updated_versions['published-branch']
         )
-        logging.info(
+        logger.info(
             "%s %s published course %s forcefully.",
             msg,
             request.user,

@@ -4,6 +4,7 @@ Tests for the maintenance app views.
 import ddt
 
 from django.core.urlresolvers import reverse
+
 from xmodule.modulestore import ModuleStoreEnum
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
@@ -11,7 +12,11 @@ from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
 from contentstore.management.commands.utils import get_course_versions
 from student.tests.factories import AdminFactory, UserFactory
 
-from .views import COURSE_KEY_ERROR_MESSAGES, get_maintenace_urls
+from .views import COURSE_KEY_ERROR_MESSAGES, MAINTENANCE_VIEWS
+
+
+# This list contains URLs of all maintenance app views.
+MAINTENANCE_URLS = [view['url'] for view in MAINTENANCE_VIEWS.values()]
 
 
 class TestMaintenanceIndex(ModuleStoreTestCase):
@@ -20,7 +25,7 @@ class TestMaintenanceIndex(ModuleStoreTestCase):
     """
 
     def setUp(self):
-        """Make the user global staff. """
+        """Make the user global staff."""
         super(TestMaintenanceIndex, self).setUp()
         self.user = AdminFactory()
         login_success = self.client.login(username=self.user.username, password='test')
@@ -28,11 +33,12 @@ class TestMaintenanceIndex(ModuleStoreTestCase):
         self.view_url = reverse('maintenance:maintenance')
 
     def test_maintenance_index(self):
+        """Test that maintenance index view lists all the maintenance app views."""
         response = self.client.get(self.view_url)
         self.assertContains(response, "Maintenance", status_code=200)
 
         # Check that all the expected links appear on the index page.
-        for url in get_maintenace_urls():
+        for url in MAINTENANCE_URLS:
             self.assertContains(response, url, status_code=200)
 
 
@@ -51,10 +57,10 @@ class MaintenanceViewTestCase(ModuleStoreTestCase):
         self.assertTrue(login_success)
         self.course = CourseFactory.create(default_store=ModuleStoreEnum.Type.split)
 
-    def verify_error_message(self, data, error_msg):
+    def verify_error_message(self, data, error_message):
         """Verify the response contains error message."""
         response = self.client.post(self.view_url, data=data)
-        self.assertContains(response, error_msg, status_code=200)
+        self.assertContains(response, error_message, status_code=200)
 
     def validate_success_from_response(self, response, success_message):
         """Validate response contains success."""
@@ -62,9 +68,7 @@ class MaintenanceViewTestCase(ModuleStoreTestCase):
         self.assertContains(response, success_message, status_code=200)
 
     def tearDown(self):
-        """
-        Reverse the setup
-        """
+        """Reverse the setup."""
         self.client.logout()
         ModuleStoreTestCase.tearDown(self)
 
@@ -74,7 +78,7 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
     """
     Tests for access control of maintenance views.
     """
-    @ddt.data(get_maintenace_urls())
+    @ddt.data(MAINTENANCE_URLS)
     @ddt.unpack
     def test_require_login(self, url):
         # Log out then try to retrieve the page
@@ -89,7 +93,7 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
 
         self.assertRedirects(response, redirect_url)
 
-    @ddt.data(get_maintenace_urls())
+    @ddt.data(MAINTENANCE_URLS)
     @ddt.unpack
     def test_global_staff_access(self, url):
         """
@@ -98,7 +102,7 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-    @ddt.data(get_maintenace_urls())
+    @ddt.data(MAINTENANCE_URLS)
     @ddt.unpack
     def test_non_global_staff_access(self, url):
         """
@@ -144,10 +148,8 @@ class TestForcePublish(MaintenanceViewTestCase):
         """
         # validate that course key contains error message
         self.verify_error_message(
-            {
-                'course-id': course_key
-            },
-            error_message
+            data={'course-id': course_key},
+            error_message=error_message
         )
 
     def test_non_split_course(self):
@@ -157,10 +159,8 @@ class TestForcePublish(MaintenanceViewTestCase):
         # validate non split error message
         course = CourseFactory.create(default_store=ModuleStoreEnum.Type.mongo)
         self.verify_error_message(
-            {
-                'course-id': unicode(course.id)
-            },
-            'Force publish course does not support old mongo style courses.'
+            data={'course-id': unicode(course.id)},
+            error_message='Force publishing course is not supported with old mongo courses.'
         )
 
     def test_already_published(self):
@@ -173,11 +173,8 @@ class TestForcePublish(MaintenanceViewTestCase):
 
         # now course is forcefully published, we should get already published course.
         self.verify_error_message(
-            {
-                'course-id': unicode(self.course.id),
-                'dry-run': ''
-            },
-            'Course is already in published state.'
+            data={'course-id': unicode(self.course.id), 'dry-run': ''},
+            error_message='Course is already in published state.'
         )
 
     def verify_versions_are_different(self):
@@ -194,9 +191,11 @@ class TestForcePublish(MaintenanceViewTestCase):
         """
         Get force publish the course response.
 
-        Argument:
+        Arguments:
+            is_dry_run (bool): dry run force publish course, default is True.
 
-            is_dry_run - default True, that means by default the view does dry run.
+        Returns:
+            response (HttpResponse): response from force publish post view.
         """
         # Verify versions point to different locations initially
         self.verify_versions_are_different()
@@ -210,7 +209,7 @@ class TestForcePublish(MaintenanceViewTestCase):
 
     def test_force_publish_dry_run(self):
         """
-        Test complete flow of force publish as dry run.
+        Test that dry run does not publishes the course but shows possible outcome if force published is executed.
         """
         response = self.get_force_publish_course_response(is_dry_run=True)
         self.validate_success_from_response(response, 'You have done a dry run of force publishing the course')
@@ -223,7 +222,7 @@ class TestForcePublish(MaintenanceViewTestCase):
 
     def test_force_publish(self):
         """
-        Test complete flow of force publish.
+        Test that when force published is executed, the course is forced published.
         """
         initial_versions = get_course_versions(unicode(self.course.id))
         response = self.get_force_publish_course_response(is_dry_run=False)

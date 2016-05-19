@@ -3,7 +3,6 @@
 <%def name="online_help_token()"><% return "maintenance" %></%def>
 <%namespace name='static' file='../static_content.html'/>
 <%!
-from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
 %>
@@ -15,8 +14,8 @@ from django.utils.translation import ugettext as _
                 <span>${_("Maintenance Dashboard")}</span>
             </a>
         </h2>
-        <%block name="commandtitle">
+        <%block name="viewtitle">
     </%block>
 </div>
-<%block name="subcontent"></%block>
+<%block name="viewcontent"></%block>
 </%block>

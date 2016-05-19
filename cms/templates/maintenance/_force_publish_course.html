@@ -1,11 +1,10 @@
 <%page expression_filter="h"/>
 <%namespace name='static' file='../static_content.html'/>
 <%!
-from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
-from openedx.core.djangolib.markup import Text, HTML
+from openedx.core.djangolib.markup import HTML, Text
 %>
-<div class="wrap-instructor-info studio-view command-form">
+<div class="wrap-instructor-info studio-view maintenance-form">
     <form class="form-create" method="post">
         <input type="hidden" name="csrfmiddlewaretoken" value="${csrf_token}"/>
         <div class="wrapper-form">
@@ -25,7 +24,7 @@ from openedx.core.djangolib.markup import Text, HTML
                             <label for="dry-run" class="label" data-tooltip="${_('Trial or practice run the task')}">${_("Dry Run")}</label>
                             % if form_data['is_dry_run']:
                             <% is_checked = "checked" %>
-                            % else :
+                            % else:
                             <% is_checked = "" %>
                             % endif
                             <input type="checkbox" id="dry-run" name="dry-run" ${is_checked}/>
@@ -37,7 +36,7 @@ from openedx.core.djangolib.markup import Text, HTML
         <div class="actions">
             <button type="submit" class="action action-primary" aria-disabled="true">${_("Force Publish Course")}
             </button>
-            <a href="${command['url']}" class="action action-secondary action-cancel"
+            <a href="${view['url']}" class="action action-secondary action-cancel"
                data-tooltip="${_('Reset values')}">${_("Reset")}</a>
         </div>
     </form>
