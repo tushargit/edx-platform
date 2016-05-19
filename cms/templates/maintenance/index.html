@@ -4,12 +4,12 @@
 <%!
 from django.utils.translation import ugettext as _
 %>
-<%block name="title">${_("Maintenance Dashboard")}</%block>
+<%block name="title">${_('Maintenance Dashboard')}</%block>
 <%block name="viewcontent">
 <section class="container maintenance-content">
     <ul>
         % for view in views.values():
-        <li><a href='${view["url"]}'>${unicode(view["name"])}</a>${unicode(view["description"])}
+        <li><a href='${view["url"]}'>${view['name']}</a>${view['description']}
         </li>
         % endfor
     </ul>

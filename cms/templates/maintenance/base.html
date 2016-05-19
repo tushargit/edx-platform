@@ -1,6 +1,6 @@
 <%page expression_filter="h"/>
 <%inherit file="../base.html" />
-<%def name="online_help_token()"><% return "maintenance" %></%def>
+<%def name='online_help_token()'><% return 'maintenance' %></%def>
 <%namespace name='static' file='../static_content.html'/>
 <%!
 from django.core.urlresolvers import reverse
@@ -11,7 +11,7 @@ from django.utils.translation import ugettext as _
     <div class="maintenance-header">
         <h2>
             <a href="${reverse('maintenance:maintenance')}">
-                <span>${_("Maintenance Dashboard")}</span>
+                <span>${_('Maintenance Dashboard')}</span>
             </a>
         </h2>
         <%block name="viewtitle">

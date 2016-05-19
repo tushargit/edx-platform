@@ -35,7 +35,7 @@ class TestMaintenanceIndex(ModuleStoreTestCase):
     def test_maintenance_index(self):
         """Test that maintenance index view lists all the maintenance app views."""
         response = self.client.get(self.view_url)
-        self.assertContains(response, "Maintenance", status_code=200)
+        self.assertContains(response, 'Maintenance', status_code=200)
 
         # Check that all the expected links appear on the index page.
         for url in MAINTENANCE_URLS:
@@ -50,7 +50,7 @@ class MaintenanceViewTestCase(ModuleStoreTestCase):
     view_url = ''
 
     def setUp(self):
-        """Create a user and log in. """
+        """Create a user and log in."""
         super(MaintenanceViewTestCase, self).setUp()
         self.user = AdminFactory()
         login_success = self.client.login(username=self.user.username, password='test')
@@ -86,8 +86,8 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
         response = self.client.get(url)
 
         # Expect a redirect to the login page
-        redirect_url = "{login_url}?next={original_url}".format(
-            login_url=reverse("login"),
+        redirect_url = '{login_url}?next={original_url}'.format(
+            login_url=reverse('login'),
             original_url=url,
         )
 
@@ -108,7 +108,7 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
         """
         Test that all maintenance app views are not accessible to non-global-staff user.
         """
-        user = UserFactory(username='test', email="test@example.com", password="test")
+        user = UserFactory(username='test', email='test@example.com', password='test')
         login_success = self.client.login(username=user.username, password='test')
         self.assertTrue(login_success)
 

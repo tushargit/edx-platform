@@ -8,6 +8,6 @@ from .views import MaintenanceIndexView, ForcePublishCourseView
 
 urlpatterns = patterns(
     '',
-    url(r'^$', MaintenanceIndexView.as_view(), name="maintenance"),
-    url(r'^force_publish_course/?$', ForcePublishCourseView.as_view(), name="force_publish_course"),
+    url(r'^$', MaintenanceIndexView.as_view(), name='maintenance'),
+    url(r'^force_publish_course/?$', ForcePublishCourseView.as_view(), name='force_publish_course'),
 )

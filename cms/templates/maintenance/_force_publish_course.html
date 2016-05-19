@@ -11,7 +11,7 @@ from openedx.core.djangolib.markup import HTML, Text
             <fieldset>
                 <ol class="list-input">
                     <li class="field text required" id="field-course-name">
-                        <label for="course-id">${_("Course ID")}</label>
+                        <label for="course-id">${_('Course ID')}</label>
                         <input id="course-id" type="text" name="course-id" aria-required="true"
                                value="${form_data['course_id']}"
                                placeholder="${_('e.g. edX+DemoX+Demo_Course')}"/>
@@ -21,11 +21,13 @@ from openedx.core.djangolib.markup import HTML, Text
                     </li>
                     <li class="field-radio">
                         <div>
-                            <label for="dry-run" class="label" data-tooltip="${_('Trial or practice run the task')}">${_("Dry Run")}</label>
+                            <label for="dry-run" class="label" data-tooltip="${_('Trial or practice run the task')}">
+                            ${_('Dry Run')}
+                            </label>
                             % if form_data['is_dry_run']:
-                            <% is_checked = "checked" %>
+                            <% is_checked = 'checked' %>
                             % else:
-                            <% is_checked = "" %>
+                            <% is_checked = '' %>
                             % endif
                             <input type="checkbox" id="dry-run" name="dry-run" ${is_checked}/>
                         </div>
@@ -34,10 +36,10 @@ from openedx.core.djangolib.markup import HTML, Text
             </fieldset>
         </div>
         <div class="actions">
-            <button type="submit" class="action action-primary" aria-disabled="true">${_("Force Publish Course")}
+            <button type="submit" class="action action-primary" aria-disabled="true">${_('Force Publish Course')}
             </button>
             <a href="${view['url']}" class="action action-secondary action-cancel"
-               data-tooltip="${_('Reset values')}">${_("Reset")}</a>
+               data-tooltip="${_('Reset values')}">${_('Reset')}</a>
         </div>
     </form>
     % if current_versions:
@@ -48,7 +50,7 @@ from openedx.core.djangolib.markup import HTML, Text
                 ${_('You have done a dry run of force publishing the course. Nothing has changed. Had you run it, the following course versions would have been change.')}
             </div>
             <div class="main-output">
-                ${_("The published branch version, {published}, was reset to the draft branch version, {draft}.").format(
+                ${_('The published branch version, {published}, was reset to the draft branch version, {draft}.').format(
                     published=current_versions['published-branch'],
                     draft=current_versions['draft-branch']
                 )}
@@ -57,12 +59,12 @@ from openedx.core.djangolib.markup import HTML, Text
         % elif updated_versions:
         <article>
             <div class="head-output">
-            ${_("Forced published the course {course_id}.").format(
+            ${_('Forced published the course {course_id}.').format(
                 course_id=form_data['course_id']
             )}
             </div>
             <div class="main-output">
-            ${_("The published branch version, {published}, was reset to the draft branch version, {draft}.").format(
+            ${_('The published branch version, {published}, was reset to the draft branch version, {draft}.').format(
                 published=current_versions['published-branch'],
                 draft=current_versions['draft-branch']
             )}
