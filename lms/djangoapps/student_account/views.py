@@ -3,28 +3,35 @@
 import logging
 import json
 import urlparse
+import pytz
 
+from datetime import datetime
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
+from django.core.urlresolvers import reverse, resolve
 from django.http import (
-    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+    HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpRequest
 )
 from django.shortcuts import redirect
-from django.http import HttpRequest
-from django_countries import countries
-from django.core.urlresolvers import reverse, resolve
 from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
-
-from lang_pref.api import released_languages, all_languages
+from django_countries import countries
 from edxmako.shortcuts import render_to_response
 
+from commerce.models import CommerceConfiguration
 from external_auth.login_and_register import (
     login as external_auth_login,
     register as external_auth_register
 )
+from lang_pref.api import released_languages, all_languages
+from openedx.core.djangoapps.commerce.utils import ecommerce_api_client
+from openedx.core.djangoapps.programs.models import ProgramsApiConfig
+from openedx.core.djangoapps.theming.helpers import is_request_in_themed_site, get_value as get_themed_value
+from openedx.core.djangoapps.user_api.accounts.api import request_password_change
+from openedx.core.djangoapps.user_api.errors import UserNotFound
 from student.models import UserProfile
 from student.views import (
     signin_user as old_login_view,
@@ -35,14 +42,11 @@ import third_party_auth
 from third_party_auth import pipeline
 from third_party_auth.decorators import xframe_allow_whitelisted
 from util.bad_request_rate_limiter import BadRequestRateLimiter
-
-from openedx.core.djangoapps.programs.models import ProgramsApiConfig
-from openedx.core.djangoapps.theming.helpers import is_request_in_themed_site, get_value as get_themed_value
-from openedx.core.djangoapps.user_api.accounts.api import request_password_change
-from openedx.core.djangoapps.user_api.errors import UserNotFound
+from xmodule.modulestore.django import ModuleI18nService
 
 
 AUDIT_LOG = logging.getLogger("audit")
+log = logging.getLogger(__name__)
 
 
 @require_http_methods(['GET'])
@@ -302,6 +306,69 @@ def _external_auth_intercept(request, mode):
         return external_auth_register(request)
 
 
+def get_user_orders(user):
+    """Given a user, get the detail of all the orders from the Ecommerce service.
+
+    Arguments:
+        user (User): The user to authenticate as when requesting ecommerce.
+
+    Returns:
+        list of dict, representing orders returned by the Ecommerce service.
+    """
+    no_data = []
+    commerce_configuration = CommerceConfiguration.current()
+    if not commerce_configuration.enabled:
+        log.warning('%s configuration is disabled.', commerce_configuration.API_NAME)
+        return no_data
+
+    if commerce_configuration.is_cache_enabled:
+        cache_key = commerce_configuration.CACHE_KEY + '.' + user.username
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
+
+    user_orders = []
+    allowed_course_modes = ['professional', 'verified', 'credit']
+    try:
+        response = ecommerce_api_client(user).orders.get()
+        commerce_user_orders = response.get('results', no_data)
+        page = 1
+        next_page = response.get('next', None)
+        while next_page:
+            page += 1
+            response = ecommerce_api_client(user).orders.get({'page': page})
+            commerce_user_orders += response.get('results', no_data)
+            next_page = response.get('next', None)
+    except Exception:  # pylint: disable=broad-except
+        log.exception('Failed to retrieve data from the Commerce API.')
+        return no_data
+
+    for order in commerce_user_orders:
+        if order['status'].lower() == 'complete':
+            for attribute in order['lines'][0]['product']['attribute_values']:
+                if attribute['name'] == 'certificate_type' and attribute['value'] in allowed_course_modes:
+                    try:
+                        order_data = {
+                            'number': order['number'],
+                            'price': order['total_excl_tax'],
+                            'title': order['lines'][0]['title'],
+                            'order_date': ModuleI18nService().strftime(
+                                datetime.strptime(order['date_placed'], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=pytz.UTC),
+                                'SHORT_DATE'
+                            ),
+                            'receipt_url': '/commerce/checkout/receipt/?orderNum=' + order['number']
+                        }
+                        user_orders.append(order_data)
+                    except KeyError:
+                        log.exception('Invalid order structure: %r', order)
+                        return no_data
+
+    if commerce_configuration.is_cache_enabled:
+        cache.set(cache_key, user_orders, commerce_configuration.cache_ttl)
+
+    return user_orders
+
+
 @login_required
 @require_http_methods(['GET'])
 def account_settings(request):
@@ -396,6 +463,7 @@ def account_settings_context(request):
         'user_preferences_api_url': reverse('preferences_api', kwargs={'username': user.username}),
         'disable_courseware_js': True,
         'show_program_listing': ProgramsApiConfig.current().show_program_listing,
+        'order_history': get_user_orders(user),
     }
 
     if third_party_auth.is_enabled():
