@@ -25,7 +25,6 @@ class TestMaintenanceIndex(ModuleStoreTestCase):
     """
 
     def setUp(self):
-        """Make the user global staff."""
         super(TestMaintenanceIndex, self).setUp()
         self.user = AdminFactory()
         login_success = self.client.login(username=self.user.username, password='test')
@@ -33,7 +32,9 @@ class TestMaintenanceIndex(ModuleStoreTestCase):
         self.view_url = reverse('maintenance:maintenance')
 
     def test_maintenance_index(self):
-        """Test that maintenance index view lists all the maintenance app views."""
+        """
+        Test that maintenance index view lists all the maintenance app views.
+        """
         response = self.client.get(self.view_url)
         self.assertContains(response, 'Maintenance', status_code=200)
 
@@ -50,25 +51,29 @@ class MaintenanceViewTestCase(ModuleStoreTestCase):
     view_url = ''
 
     def setUp(self):
-        """Create a user and log in."""
         super(MaintenanceViewTestCase, self).setUp()
         self.user = AdminFactory()
         login_success = self.client.login(username=self.user.username, password='test')
         self.assertTrue(login_success)
-        self.course = CourseFactory.create(default_store=ModuleStoreEnum.Type.split)
 
     def verify_error_message(self, data, error_message):
-        """Verify the response contains error message."""
+        """
+        Verify the response contains error message.
+        """
         response = self.client.post(self.view_url, data=data)
         self.assertContains(response, error_message, status_code=200)
 
     def validate_success_from_response(self, response, success_message):
-        """Validate response contains success."""
+        """
+        Validate response contains success.
+        """
         self.assertNotContains(response, '<div class="error">', status_code=200)
         self.assertContains(response, success_message, status_code=200)
 
     def tearDown(self):
-        """Reverse the setup."""
+        """
+        Reverse the setup.
+        """
         self.client.logout()
         ModuleStoreTestCase.tearDown(self)
 
@@ -81,6 +86,9 @@ class MaintenanceViewAccessTests(MaintenanceViewTestCase):
     @ddt.data(MAINTENANCE_URLS)
     @ddt.unpack
     def test_require_login(self, url):
+        """
+        Test that maintenance app requires user login.
+        """
         # Log out then try to retrieve the page
         self.client.logout()
         response = self.client.get(url)
@@ -125,8 +133,17 @@ class TestForcePublish(MaintenanceViewTestCase):
     def setUp(self):
         super(TestForcePublish, self).setUp()
         self.view_url = reverse('maintenance:force_publish_course')
+
+    def setup_test_course(self):
+        """
+        Creates the course and add some changes to it.
+
+        Returns:
+            course: a course object
+        """
+        course = CourseFactory.create(default_store=ModuleStoreEnum.Type.split)
         # Add some changes to course
-        chapter = ItemFactory.create(category='chapter', parent_location=self.course.location)
+        chapter = ItemFactory.create(category='chapter', parent_location=course.location)
         self.store.create_child(
             self.user.id,  # pylint: disable=no-member
             chapter.location,
@@ -134,7 +151,8 @@ class TestForcePublish(MaintenanceViewTestCase):
             block_id='html_component'
         )
         # verify that course has changes.
-        self.assertTrue(self.store.has_changes(self.store.get_item(self.course.location)))
+        self.assertTrue(self.store.has_changes(self.store.get_item(course.location)))
+        return course
 
     @ddt.data(
         ('', COURSE_KEY_ERROR_MESSAGES['empty_course_key']),
@@ -167,42 +185,47 @@ class TestForcePublish(MaintenanceViewTestCase):
         """
         Test that when a course is forcefully publish, we get a 'course is already published' message.
         """
+        course = self.setup_test_course()
         # force publish the course
-        response = self.get_force_publish_course_response(is_dry_run=False)
+        response = self.get_force_publish_course_response(course, is_dry_run=False)
         self.validate_success_from_response(response, 'Forced published the course')
 
         # now course is forcefully published, we should get already published course.
         self.verify_error_message(
-            data={'course-id': unicode(self.course.id), 'dry-run': ''},
+            data={'course-id': unicode(course.id), 'dry-run': ''},
             error_message='Course is already in published state.'
         )
 
-    def verify_versions_are_different(self):
+    def verify_versions_are_different(self, course):
         """
         Verify draft and published versions point to different locations.
+
+        Arguments:
+            course (object): a course object.
         """
         # get draft and publish branch versions
-        versions = get_course_versions(unicode(self.course.id))
+        versions = get_course_versions(unicode(course.id))
 
         # verify that draft and publish point to different versions
         self.assertNotEqual(versions['draft-branch'], versions['published-branch'])
 
-    def get_force_publish_course_response(self, is_dry_run=True):
+    def get_force_publish_course_response(self, course, is_dry_run=True):
         """
         Get force publish the course response.
 
         Arguments:
+            course (object): a course object.
             is_dry_run (bool): dry run force publish course, default is True.
 
         Returns:
             response (HttpResponse): response from force publish post view.
         """
         # Verify versions point to different locations initially
-        self.verify_versions_are_different()
+        self.verify_versions_are_different(course)
 
         # force publish course view
         data = {
-            'course-id': unicode(self.course.id),
+            'course-id': unicode(course.id),
             'dry-run': 'on' if is_dry_run else ''
         }
         return self.client.post(self.view_url, data=data)
@@ -211,28 +234,30 @@ class TestForcePublish(MaintenanceViewTestCase):
         """
         Test that dry run does not publishes the course but shows possible outcome if force published is executed.
         """
-        response = self.get_force_publish_course_response(is_dry_run=True)
+        course = self.setup_test_course()
+        response = self.get_force_publish_course_response(course, is_dry_run=True)
         self.validate_success_from_response(response, 'You have done a dry run of force publishing the course')
 
         # verify that course still has changes as we just dry ran force publish course.
-        self.assertTrue(self.store.has_changes(self.store.get_item(self.course.location)))
+        self.assertTrue(self.store.has_changes(self.store.get_item(course.location)))
 
         # verify that both branch versions are still different
-        self.verify_versions_are_different()
+        self.verify_versions_are_different(course)
 
     def test_force_publish(self):
         """
         Test that when force published is executed, the course is forced published.
         """
-        initial_versions = get_course_versions(unicode(self.course.id))
-        response = self.get_force_publish_course_response(is_dry_run=False)
+        course = self.setup_test_course()
+        initial_versions = get_course_versions(unicode(course.id))
+        response = self.get_force_publish_course_response(course, is_dry_run=False)
         self.validate_success_from_response(response, 'Forced published the course')
 
         # verify that course has no changes
-        self.assertFalse(self.store.has_changes(self.store.get_item(self.course.location)))
+        self.assertFalse(self.store.has_changes(self.store.get_item(course.location)))
 
         # get new draft and publish branch versions
-        updated_versions = get_course_versions(unicode(self.course.id))
+        updated_versions = get_course_versions(unicode(course.id))
 
         # verify that the draft branch didn't change while the published branch did
         self.assertEqual(initial_versions['draft-branch'], updated_versions['draft-branch'])
