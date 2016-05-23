@@ -9,9 +9,18 @@
     ], function (gettext, $, _, Backbone, Logger, UserAccountModel, UserPreferencesModel,
                  AccountSettingsFieldViews, AccountSettingsView) {
 
-        return function (fieldsData, authData, userAccountsApiUrl, userPreferencesApiUrl, accountUserId, platformName) {
+        return function (
+            fieldsData,
+            ordersHistoryData,
+            authData,
+            userAccountsApiUrl,
+            userPreferencesApiUrl,
+            accountUserId,
+            platformName
+        ) {
             var accountSettingsElement, userAccountModel, userPreferencesModel, aboutSectionsData,
-                accountsSectionData, accountSettingsView, showAccountSettingsPage, showLoadingError;
+                accountsSectionData, ordersSectionData, accountSettingsView, showAccountSettingsPage,
+                showLoadingError, orderNumber;
 
             accountSettingsElement = $('.wrapper-account-settings');
 
@@ -167,13 +176,49 @@
                 }
             ];
 
+            ordersHistoryData.unshift(
+                {
+                    'title': gettext('ORDER NAME'),
+                    'order_date': gettext('ORDER PLACED'),
+                    'price': gettext('TOTAL'),
+                    'number': gettext('INVOICE ID')
+                }
+            );
+
+            ordersSectionData = [
+                {
+                    title: gettext('Your Orders'),
+                    subtitle: gettext(
+                        'View details of our past purchases and, potentially request a refund for a past order. For ' +
+                        'more information on refund request eligibility, please read here.'
+                    ),
+                    fields: _.map(ordersHistoryData, function(order) {
+                        orderNumber = order.number;
+                        if (orderNumber === 'INVOICE ID') {
+                            orderNumber = 'invoice-id';
+                        }
+                        return {
+                            'view': new AccountSettingsFieldViews.OrderHistoryFieldView({
+                                title: order.title,
+                                total_price: order.price,
+                                invoice_id: order.number,
+                                date_placed: order.order_date,
+                                receipt_url: order.receipt_url,
+                                valueAttribute: 'order-' + orderNumber
+                            })
+                        };
+                    })
+                }
+            ];
+
             accountSettingsView = new AccountSettingsView({
                 model: userAccountModel,
                 accountUserId: accountUserId,
                 el: accountSettingsElement,
                 tabSections: {
                     aboutTabSections: aboutSectionsData,
-                    accountsTabSections: accountsSectionData
+                    accountsTabSections: accountsSectionData,
+                    ordersTabSections: ordersSectionData
                 },
                 userPreferencesModel: userPreferencesModel
             });

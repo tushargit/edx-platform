@@ -10,7 +10,8 @@
         'text!templates/fields/field_readonly_account.underscore',
         'text!templates/fields/field_link_account.underscore',
         'text!templates/fields/field_dropdown_account.underscore',
-        'text!templates/fields/field_social_link_account.underscore'
+        'text!templates/fields/field_social_link_account.underscore',
+        'text!templates/fields/field_order_history.underscore'
     ], function (
         gettext, $, _, Backbone,
         FieldViews,
@@ -18,7 +19,8 @@
         field_readonly_account_template,
         field_link_account_template,
         field_dropdown_account_template,
-        field_social_link_template)
+        field_social_link_template,
+        field_order_history_template)
     {
 
         var AccountSettingsFieldViews = {
@@ -225,6 +227,42 @@
                 },
                 successMessage: function () {
                     return this.indicators.success + gettext('Successfully unlinked.');
+                }
+            }),
+            
+            OrderHistoryFieldView: FieldViews.ReadonlyFieldView.extend({
+                fieldType: 'orderHistory',
+                fieldTemplate: field_order_history_template,
+                events: {
+                    'mouseenter .u-field-orderHistory .u-field-order': 'showDetailsButton',
+                    'mouseleave .u-field-orderHistory .u-field-order': 'hideDetailsButton'
+                },
+
+                initialize: function (options) {
+                    this.options = options;
+                    this._super(options);
+                    _.bindAll(this, 'showDetailsButton', 'hideDetailsButton');
+                },
+
+                render: function () {
+                    this.$el.html(this.template({
+                        title: this.options.title,
+                        total_price: this.options.total_price,
+                        invoice_id: this.options.invoice_id,
+                        date_placed: this.options.date_placed,
+                        receipt_url: this.options.receipt_url,
+                        valueAttribute: this.options.valueAttribute
+                    }));
+                    this.delegateEvents();
+                    return this;
+                },
+
+                showDetailsButton: function () {
+                    this.$el.find('.u-field-order-link .u-field-link').removeClass('hidden');
+                },
+
+                hideDetailsButton: function () {
+                    this.$el.find('.u-field-order-link .u-field-link').addClass('hidden');
                 }
             }),
         };

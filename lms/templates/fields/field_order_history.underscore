@@ -1,0 +1,11 @@
+<div class="field u-field-order">
+    <span class="u-field-order-title"><%- title %></span>
+    <span class="u-field-order-date"><%- date_placed %></span>
+    <span class="u-field-order-value u-field-order-price"><% if (!isNaN(parseFloat(total_price))) { %>$<% } %><%- total_price %></span>
+    <span class="u-field-order-value u-field-order-number"><%- invoice_id %></span>
+    <span class="u-field-order-link">
+        <% if (receipt_url) { %>
+            <a class="u-field-link hidden" aria-live="polite" target="_blank" href="<%- receipt_url %>"><%- gettext('Order Details') %></a>
+        <% } %>
+    </span>
+</div>
