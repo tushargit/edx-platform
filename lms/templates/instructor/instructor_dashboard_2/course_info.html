@@ -2,7 +2,7 @@
 <%page args="section_data"/>
 
 %if settings.FEATURES.get('DISPLAY_ANALYTICS_ENROLLMENTS') or section_data.get('enrollment_message'):
-  <h3 id="header-${section_data['section_key']}" class="hd hd-3">${_("Enrollment Information")}</h3>
+  <h3 class="hd hd-3">${_("Enrollment Information")}</h3>
   <div class="enrollment-wrapper">
     %if settings.FEATURES.get('DISPLAY_ANALYTICS_ENROLLMENTS'):
       ## Translators: 'track' refers to the enrollment type ('honor', 'verified', or 'audit')
