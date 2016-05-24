@@ -1179,6 +1179,6 @@ class LMSInstructorDashboardA11yTest(BaseInstructorDashboardTest):
         # before 2 October 2016, and include the below exclusions.
         self.instructor_dashboard_page.a11y_audit.config.set_scope(
             include=[],
-            exclude=["a", "table"] # TODO: AC-415 will include `a`
+            exclude=["a", "table"]  # TODO: AC-415 will include `a`
         )
         self.instructor_dashboard_page.a11y_audit.check_for_accessibility_errors()
