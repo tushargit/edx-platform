@@ -16,11 +16,11 @@
 <div class="wrapper-content-header wrapper">
   <section class="content content-header">
     <header>
-      <h1><span class="wrapper-text-welcome">${Text(_("Welcome to {studio_name}")).format(
-        studio_name=HTML(u'</span><span class="logo">{studio_name}</span>').format(
-          studio_name=settings.STUDIO_NAME
-        )
-      )}</h1>
+      <h1><span class="wrapper-text-welcome">${Text(_("Welcome to {span_start}{studio_name}{span_end}")).format(
+          span_start=HTML('<span class="logo">'),
+          studio_name=settings.STUDIO_NAME,
+          span_end=HTML('</span>')
+      )}</span></h1>
       <p class="tagline">${_("{studio_name} helps manage your online courses, so you can focus on teaching them").format(
         studio_name=settings.STUDIO_SHORT_NAME
       )}</p>
