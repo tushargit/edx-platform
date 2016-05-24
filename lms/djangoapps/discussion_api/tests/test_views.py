@@ -236,6 +236,20 @@ class CourseTopicsViewTest(DiscussionAPIViewTestMixin, ModuleStoreTestCase):
             with modulestore().default_store(module_store):
                 self.client.get(course_url)
 
+    def test_discussion_topic_404(self):
+        """
+        Tests discussion topic does not exist for the given topic id.
+        """
+        topic_id = "courseware-topic-id"
+        self.make_discussion_module(topic_id, "test_category", "test_target")
+        url = "{}?topic_id=invalid_topic_id".format(self.url)
+        response = self.client.get(url)
+        self.assert_response_correct(
+            response,
+            404,
+            {"developer_message": "Discussion not found."}
+        )
+
     def test_discussion_topic(self):
         """
         Tests discussion topic details against a requested topic id

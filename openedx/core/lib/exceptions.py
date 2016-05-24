@@ -10,3 +10,8 @@ class CourseNotFoundError(ObjectDoesNotExist):
 class PageNotFoundError(ObjectDoesNotExist):
     """ Page was not found. Used for paginated endpoint. """
     pass
+
+
+class DiscussionNotFoundError(ObjectDoesNotExist):
+    """ Discussion Module was not found. """
+    pass

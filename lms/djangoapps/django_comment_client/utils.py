@@ -13,8 +13,8 @@ from django.utils.timezone import UTC
 import pystache_custom as pystache
 from opaque_keys.edx.locations import i4xEncoder
 from opaque_keys.edx.keys import CourseKey
-from rest_framework.exceptions import PermissionDenied
 from xmodule.modulestore.django import modulestore
+from openedx.core.lib.exceptions import DiscussionNotFoundError
 from lms.djangoapps.ccx.overrides import get_current_ccx
 
 from django_comment_common.models import Role, FORUM_ROLE_STUDENT
@@ -147,18 +147,22 @@ def get_discussion_module(course, user, discussion_id):
         user: The user requested the object.
 
     Returns:
-        The discussion module information in the specified course against
+        The discussion module information in the specified course for the given
         discussion id only if user had access to that discussion module.
 
     Raises:
-        PermissionDenied: if requesting user does not have access to
-        requested discussion module.
+        DiscussionNotFoundError: if  discussion module does not exist for
+        given ID or requesting user does not have access to requested
+        discussion module.
     """
     key = get_cached_discussion_key(course, discussion_id)
-    discussion_module = modulestore().get_item(key)
-    if not has_access(user, 'load', discussion_module, course.id):
-        raise PermissionDenied
-    return discussion_module
+    if key:
+        discussion_module = modulestore().get_item(key)
+        if not discussion_category_id_access(course, user, discussion_id, discussion_module):
+            raise DiscussionNotFoundError("Discussion not found.")
+        return discussion_module
+    else:
+        raise DiscussionNotFoundError("Discussion not found.")
 
 
 def get_discussion_id_map_entry(module):
@@ -409,7 +413,7 @@ def get_discussion_category_map(course, user, cohorted_if_in_list=False, exclude
     return _filter_unstarted_categories(category_map, course) if exclude_unstarted else category_map
 
 
-def discussion_category_id_access(course, user, discussion_id):
+def discussion_category_id_access(course, user, discussion_id, module=None):
     """
     Returns True iff the given discussion_id is accessible for user in course.
     Assumes that the commentable identified by discussion_id has a null or 'course' context.
@@ -419,10 +423,11 @@ def discussion_category_id_access(course, user, discussion_id):
     if discussion_id in course.top_level_discussion_topic_ids:
         return True
     try:
-        key = get_cached_discussion_key(course, discussion_id)
-        if not key:
-            return False
-        module = modulestore().get_item(key)
+        if not module:
+            key = get_cached_discussion_key(course, discussion_id)
+            if not key:
+                return False
+            module = modulestore().get_item(key)
         return has_required_keys(module) and has_access(user, 'load', module, course.id)
     except DiscussionIdMapIsNotCached:
         return discussion_id in get_discussion_categories_ids(course, user)

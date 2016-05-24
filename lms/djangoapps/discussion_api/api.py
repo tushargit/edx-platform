@@ -42,8 +42,8 @@ from django_comment_common.signals import (
 )
 from django_comment_client.utils import (
     get_accessible_discussion_modules,
-    is_commentable_cohorted,
     get_discussion_module,
+    is_commentable_cohorted,
 )
 from lms.djangoapps.discussion_api.pagination import DiscussionAPIPagination
 from lms.lib.comment_client.comment import Comment
@@ -250,7 +250,22 @@ def get_course_topics(request, course_key):
 
 def get_course_topic(request, course_key, topic_id):
     """
-    Returns details of discussion topic against topic_id
+    Returns details of discussion topic for the given topic_id.
+
+    Parameters:
+
+        request: The django request object
+        course_key: course_key: The key of the course to get discussion threads for
+        topic_id: Topic ID string to get discussion
+
+    Returns:
+
+        Discussion module for given topic id.
+
+    Raises:
+
+        DiscussionNotFoundError: If discussion module does not exist for given topic
+        id or requesting user does not have access to requested discussion module.
     """
     course = _get_course(course_key, request.user)
     discussion_module = get_discussion_module(course, request.user, topic_id)
