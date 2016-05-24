@@ -1164,11 +1164,7 @@ class LMSInstructorDashboardA11yTest(BaseInstructorDashboardTest):
     LMS Instructor Dashboard Accessibility Test Class
     """
     def setUp(self):
-        browser = os.environ.get('SELENIUM_BROWSER', 'firefox')
-
-        with patch.dict(os.environ, {'SELENIUM_BROWSER': browser}):
-            super(LMSInstructorDashboardA11yTest, self).setUp()
-
+        super(LMSInstructorDashboardA11yTest, self).setUp()
         self.course_fixture = CourseFixture(**self.course_info).install()
         self.log_in_as_instructor()
         self.instructor_dashboard_page = self.visit_instructor_dashboard()
@@ -1177,6 +1173,7 @@ class LMSInstructorDashboardA11yTest(BaseInstructorDashboardTest):
         # a11y test added on 24 May 2016, but mostly disabled as there's a slew
         # of issues on the Instructor Dashboard. We should aim to resolve these
         # before 2 October 2016, and include the below exclusions.
+        self.instructor_dashboard_page.a11y_audit.config.set_rules({})
         self.instructor_dashboard_page.a11y_audit.config.set_scope(
             include=[],
             exclude=["a", "table"]  # TODO: AC-415 will include `a`
