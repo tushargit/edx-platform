@@ -183,7 +183,7 @@ class CoursewareIndex(View):
         """
         if self.position is not None:
             try:
-                int(self.position)
+                self.position = max(int(self.position), 1) # test change
             except ValueError:
                 raise Http404(u"Position {} is not an integer!".format(self.position))
 
