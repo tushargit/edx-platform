@@ -3,7 +3,7 @@
 
   <div class="file-upload-form-result result"></div>
 
-  <form class="file-upload-form" id="file-upload-form" method="post" action="<%= url %>" enctype="multipart/form-data">
+  <form class="file-upload-form" id="file-upload-form" method="post" action="<%- url %>" enctype="multipart/form-data">
 
       <div class="form-fields">
         <div class="field field-file is-required">

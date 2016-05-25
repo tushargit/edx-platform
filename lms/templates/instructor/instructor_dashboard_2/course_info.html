@@ -1,5 +1,5 @@
 <%! from django.utils.translation import ugettext as _ %>
-<%page args="section_data"/>
+<%page args="section_data" expression_filter="h"/>
 
 %if settings.FEATURES.get('DISPLAY_ANALYTICS_ENROLLMENTS') or section_data.get('enrollment_message'):
   <h3 class="hd hd-3">${_("Enrollment Information")}</h3>
@@ -39,22 +39,22 @@
   <ul class="list-input">
     <li class="field text is-not-editable" id="field-course-organization">
       <label for="course-organization">${_("Organization:")}</label>
-      <b>${ section_data['course_id'].org | h}</b>
+      <b>${ section_data['course_id'].org}</b>
     </li>
 
     <li class="field text is-not-editable" id="field-course-number">
       <label for="course-number">${_("Course Number:")}</label>
-      <b>${ section_data['course_id'].course | h}</b>
+      <b>${ section_data['course_id'].course}</b>
     </li>
 
     <li class="field text is-not-editable" id="field-course-name">
       <label for="course-name">${_("Course Name:")}</label>
-      <b>${ section_data['course_id'].run | h}</b>
+      <b>${ section_data['course_id'].run}</b>
     </li>
 
     <li class="field text is-not-editable" id="field-course-display-name">
       <label for="course-display-name">${_("Course Display Name:")}</label>
-      <b>${ section_data['course_display_name'] | h}</b>
+      <b>${ section_data['course_display_name']}</b>
     </li>
 
     <li class="field text is-not-editable" id="field-course-start-date">
@@ -97,9 +97,9 @@
   %if settings.FEATURES.get('ENABLE_SYSADMIN_DASHBOARD', ''):
       <p>
         ## Translators: git is a version-control system; see http://git-scm.com/about
-        ${_("View detailed Git import logs for this course {link_start}by clicking here{link_end}.").format(
-            link_start='<a href="{}">'.format(section_data['detailed_gitlogs_url']),
-            link_end='</a>'
+        ${HTML(_("View detailed Git import logs for this course {link_start}by clicking here{link_end}.")).format(
+            link_start=HTML('<a href="{}">').format(section_data['detailed_gitlogs_url']),
+            link_end=HTML('</a>')
         )}
       </p>
   %endif
