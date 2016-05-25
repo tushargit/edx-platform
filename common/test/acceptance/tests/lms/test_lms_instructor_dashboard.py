@@ -6,7 +6,6 @@ End-to-end tests for the LMS Instructor Dashboard.
 import ddt
 import os
 
-from mock import patch
 from nose.plugins.attrib import attr
 from bok_choy.promise import EmptyPromise
 
@@ -65,6 +64,22 @@ class BulkEmailTest(BaseInstructorDashboardTest):
         self.assertTrue(self.send_email_page.is_browser_on_page())
         self.send_email_page.send_message(recipient)
         self.send_email_page.verify_message_queued_successfully()
+
+    @attr('a11y')
+    def test_bulk_email_a11y(self):
+        """
+        Bulk email accessibility tests
+        """
+        self.send_email_page.a11y_audit.config.set_rules({})
+        self.send_email_page.a11y_audit.config.set_rules({
+            "ignore": [
+                'link-href'  # AC-415 will enable these,
+                'button-name',
+                'color-contrast',
+                'list'
+            ]
+        })
+        self.send_email_page.a11y_audit.check_for_accessibility_errors()
 
 
 @attr('shard_7')
@@ -173,6 +188,20 @@ class AutoEnrollmentWithCSVTest(BaseInstructorDashboardTest):
         self.auto_enroll_section.upload_non_csv_file()
         self.assertTrue(self.auto_enroll_section.is_notification_displayed(section_type=self.auto_enroll_section.NOTIFICATION_ERROR))
         self.assertEqual(self.auto_enroll_section.first_notification_message(section_type=self.auto_enroll_section.NOTIFICATION_ERROR), "Make sure that the file you upload is in CSV format with no extraneous characters or rows.")
+
+    @attr('a11y')
+    def test_auto_enroll_csv_a11y(self):
+        """
+        Auto-enrollment with CSV accessibility tests
+        """
+        self.auto_enroll_section.a11y_audit.config.set_rules({
+            "ignore": [
+                'data-table',
+                'duplicate-id',
+                'link-href'  # AC-415 will enable these
+            ]
+        })
+        self.auto_enroll_section.a11y_audit.check_for_accessibility_errors()
 
 
 @attr('shard_7')
@@ -363,6 +392,83 @@ class ProctoredExamsTest(BaseInstructorDashboardTest):
         exam_attempts_section.remove_student_attempt()
         self.assertFalse(exam_attempts_section.is_student_attempt_visible)
 
+    @attr('a11y')
+    def test_track_selection_a11y(self):
+        """
+        Proctored: Track selection accessibility tests
+        """
+        self.track_selection_page.a11y_audit.config.set_rules({
+            "ignore": [
+                'document-title',
+                'html-lang'
+            ]
+        })
+        self.track_selection_page.a11y_audit.check_for_accessibility_errors()
+
+    @attr('a11y')
+    def test_payment_verification_a11y(self):
+        """
+        Proctored: Payment verification accessibility tests
+        """
+        self.payment_and_verification_flow.a11y_audit.config.set_rules({
+            "ignore": [
+                'document-title',
+                'html-lang'
+            ]
+        })
+        self.payment_and_verification_flow.a11y_audit.check_for_accessibility_errors()
+
+    @attr('a11y')
+    def test_immediate_verification_a11y(self):
+        """
+        Proctored: Immediate verification accessibility tests
+        """
+        self.immediate_verification_page.a11y_audit.config.set_rules({
+            "ignore": [
+                'document-title',
+                'html-lang'
+            ]
+        })
+        self.immediate_verification_page.a11y_audit.check_for_accessibility_errors()
+
+    @attr('a11y')
+    def test_upgrade_a11y(self):
+        """
+        Proctored: Upgrade page accessibility tests
+        """
+        self.upgrade_page.a11y_audit.config.set_rules({
+            "ignore": [
+                'document-title',
+                'html-lang'
+            ]
+        })
+        self.upgrade_page.a11y_audit.check_for_accessibility_errors()
+
+    @attr('a11y')
+    def test_fake_payment_a11y(self):
+        """
+        Proctored: Fake payment page accessibility tests
+        """
+        self.fake_payment_page.a11y_audit.config.set_rules({
+            "ignore": [
+                'document-title',
+                'html-lang'
+            ]
+        })
+        self.fake_payment_page.a11y_audit.check_for_accessibility_errors()
+
+    @attr('a11y')
+    def test_problem_a11y(self):
+        """
+        Proctored: Problem page accessibility tests
+        """
+        self.problem_page.a11y_audit.config.set_rules({
+            "ignore": [
+                'document-title',
+                'html-lang'
+            ]
+        })
+        self.problem_page.a11y_audit.check_for_accessibility_errors()
 
 @attr('shard_7')
 class EntranceExamGradeTest(BaseInstructorDashboardTest):
@@ -562,6 +668,18 @@ class EntranceExamGradeTest(BaseInstructorDashboardTest):
         self.student_admin_section.click_task_history_button()
         self.assertTrue(self.student_admin_section.is_background_task_history_table_visible())
 
+    @attr('a11y')
+    def test_entrance_exam_test_a11y(self):
+        """
+        Entrance exam accessibility tests
+        """
+        self.student_admin_section.a11y_audit.config.set_rules({
+            "ignore": [
+                'link-href'  # AC-415 will enable these
+            ]
+        })
+        self.student_admin_section.a11y_audit.check_for_accessibility_errors()
+
 
 @attr('shard_7')
 class DataDownloadsTest(BaseInstructorDashboardTest):
@@ -669,6 +787,18 @@ class DataDownloadsTest(BaseInstructorDashboardTest):
         self.data_download_section.generate_ora2_response_report_button.click()
         self.data_download_section.wait_for_available_report()
         self.verify_report_download(report_name)
+
+    @attr('a11y')
+    def test_data_download_a11y(self):
+        """
+        Data download page accessibility tests
+        """
+        self.data_download_section.a11y_audit.config.set_rules({
+            "ignore": [
+                'link-href'  # AC-415 will enable these
+            ]
+        })
+        self.data_download_section.a11y_audit.check_for_accessibility_errors()
 
 
 @attr('shard_7')
@@ -957,6 +1087,18 @@ class CertificatesTest(BaseInstructorDashboardTest):
         # Validate certificate exception synced with server is visible in certificate exceptions list
         self.assertIn(self.user_name, self.certificates_section.last_certificate_exception.text)
         self.assertIn(expected_notes, self.certificates_section.last_certificate_exception.text)
+        
+    @attr('a11y')
+    def test_certificates_a11y(self):
+        """
+        Certificates page accessibility tests
+        """
+        self.certificates_section.a11y_audit.config.set_rules({
+            "ignore": [
+                'link-href'  # AC-415 will enable these
+            ]
+        })
+        self.certificates_section.a11y_audit.check_for_accessibility_errors()
 
 
 @attr('shard_7')
@@ -1156,26 +1298,15 @@ class CertificateInvalidationTest(BaseInstructorDashboardTest):
             u"{user} is not enrolled in this course. Please check your spelling and retry.".format(user=new_user),
             self.certificates_section.certificate_invalidation_message.text
         )
-
-
-@attr('a11y')
-class LMSInstructorDashboardA11yTest(BaseInstructorDashboardTest):
-    """
-    LMS Instructor Dashboard Accessibility Test Class
-    """
-    def setUp(self):
-        super(LMSInstructorDashboardA11yTest, self).setUp()
-        self.course_fixture = CourseFixture(**self.course_info).install()
-        self.log_in_as_instructor()
-        self.instructor_dashboard_page = self.visit_instructor_dashboard()
-
-    def test_instructor_dashboard_a11y(self):
-        # a11y test added on 24 May 2016, but mostly disabled as there's a slew
-        # of issues on the Instructor Dashboard. We should aim to resolve these
-        # before 2 October 2016, and include the below exclusions.
-        self.instructor_dashboard_page.a11y_audit.config.set_rules({})
-        self.instructor_dashboard_page.a11y_audit.config.set_scope(
-            include=[],
-            exclude=["a", "table"]  # TODO: AC-415 will include `a`
-        )
-        self.instructor_dashboard_page.a11y_audit.check_for_accessibility_errors()
+        
+    @attr('a11y')
+    def test_invalidate_certificates_a11y(self):
+        """
+        Certificate invalidation accessibility tests
+        """
+        self.certificates_section.a11y_audit.config.set_rules({
+            "ignore": [
+                'link-href'  # AC-415 will enable these
+            ]
+        })
+        self.certificates_section.a11y_audit.check_for_accessibility_errors()
