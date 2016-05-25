@@ -70,7 +70,6 @@ class BulkEmailTest(BaseInstructorDashboardTest):
         """
         Bulk email accessibility tests
         """
-        self.send_email_page.a11y_audit.config.set_rules({})
         self.send_email_page.a11y_audit.config.set_rules({
             "ignore": [
                 'link-href'  # AC-415 will enable these,
@@ -198,6 +197,7 @@ class AutoEnrollmentWithCSVTest(BaseInstructorDashboardTest):
             "ignore": [
                 'data-table',
                 'duplicate-id',
+                'color-contrast',
                 'link-href'  # AC-415 will enable these
             ]
         })
@@ -469,6 +469,7 @@ class ProctoredExamsTest(BaseInstructorDashboardTest):
             ]
         })
         self.problem_page.a11y_audit.check_for_accessibility_errors()
+
 
 @attr('shard_7')
 class EntranceExamGradeTest(BaseInstructorDashboardTest):
@@ -1087,7 +1088,7 @@ class CertificatesTest(BaseInstructorDashboardTest):
         # Validate certificate exception synced with server is visible in certificate exceptions list
         self.assertIn(self.user_name, self.certificates_section.last_certificate_exception.text)
         self.assertIn(expected_notes, self.certificates_section.last_certificate_exception.text)
-        
+
     @attr('a11y')
     def test_certificates_a11y(self):
         """
@@ -1095,6 +1096,12 @@ class CertificatesTest(BaseInstructorDashboardTest):
         """
         self.certificates_section.a11y_audit.config.set_rules({
             "ignore": [
+                'aria-valid-attr-value',
+                'checkboxgroup',
+                'color-contrast',
+                'duplicate-id',
+                'label',
+                'radiogroup',
                 'link-href'  # AC-415 will enable these
             ]
         })
@@ -1298,7 +1305,7 @@ class CertificateInvalidationTest(BaseInstructorDashboardTest):
             u"{user} is not enrolled in this course. Please check your spelling and retry.".format(user=new_user),
             self.certificates_section.certificate_invalidation_message.text
         )
-        
+
     @attr('a11y')
     def test_invalidate_certificates_a11y(self):
         """
@@ -1306,6 +1313,12 @@ class CertificateInvalidationTest(BaseInstructorDashboardTest):
         """
         self.certificates_section.a11y_audit.config.set_rules({
             "ignore": [
+                'aria-valid-attr-value',
+                'checkboxgroup',
+                'color-contrast',
+                'duplicate-id',
+                'label',
+                'radiogroup',
                 'link-href'  # AC-415 will enable these
             ]
         })
