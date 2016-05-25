@@ -912,6 +912,9 @@ INSTALLED_APPS = (
 
     # Tagging
     'cms.lib.xblock.tagging',
+
+    # Enables default site and redirects
+    'django_sites_extensions',
 )
 
 
