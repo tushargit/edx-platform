@@ -12,40 +12,44 @@ from openedx.core.djangolib.markup import HTML, Text
                 <ol class="list-input">
                     <li class="field text required" id="field-course-name">
                         <label for="course-id">${_('Course ID')}</label>
-                        <input id="course-id" type="text" name="course-id" aria-required="true"
-                               value="${form_data['course_id']}"
-                               placeholder="${_('e.g. edX+DemoX+Demo_Course')}"/>
+                        <input id="course-id" type="text" name="course-id" aria-describedby="course-id-desc" required
+                               value="${form_data['course_id']}"/>
+                        <div id="course-id-desc" class="tip tip-stacked">${_('e.g. edX+DemoX+Demo_Course')}</div>
+                        <div class="error" aria-live="polite" id="cid-error">
                         % if error:
-                        <div class="error">${msg}</div>
+                            ${msg}
                         % endif
+                        </div>
                     </li>
-                    <li class="field-radio">
+                    <li class="field field-radio">
                         <div>
-                            <label for="dry-run" class="label" data-tooltip="${_('Trial or practice run the task')}">
-                            ${_('Dry Run')}
-                            </label>
                             % if form_data['is_dry_run']:
                             <% is_checked = 'checked' %>
                             % else:
                             <% is_checked = '' %>
                             % endif
-                            <input type="checkbox" id="dry-run" name="dry-run" ${is_checked}/>
+                            <input type="checkbox" id="dry-run" name="dry-run" aria-describedby="dry-run-desc" ${is_checked}/>
+                            <label for="dry-run" class="label">
+                            ${_('Dry Run')}
+                            </label>
                         </div>
+                            <span id="dry-run-desc" class="tip tip-stacked">${_('Trial or practice run the task.')}</span>
                     </li>
                 </ol>
             </fieldset>
         </div>
         <div class="actions">
-            <button type="submit" class="action action-primary" aria-disabled="true">${_('Force Publish Course')}
+            <button type="submit" class="action action-primary">${_('Force Publish Course')}
             </button>
             <a href="${view['url']}" class="action action-secondary action-cancel"
-               data-tooltip="${_('Reset values')}">${_('Reset')}</a>
+               aria-describedby="reset-values-desc">${_('Reset')}</a>
+            <span id="reset-values-desc" class="is-hidden">${_('Reset values')}</span>
         </div>
     </form>
     % if current_versions:
-    <div class="result">
+    <div class="result-container">
         % if form_data['is_dry_run']:
-        <article>
+        <div class="result">
             <div class="head-output">
                 ${_('You have done a dry run of force publishing the course. Nothing has changed. Had you run it, the following course versions would have been change.')}
             </div>
@@ -55,9 +59,9 @@ from openedx.core.djangolib.markup import HTML, Text
                     draft=current_versions['draft-branch']
                 )}
             </div>
-        </article>
+        </div>
         % elif updated_versions:
-        <article>
+        <div class="result">
             <div class="head-output">
             ${_('Forced published the course {course_id}.').format(
                 course_id=form_data['course_id']
@@ -69,12 +73,15 @@ from openedx.core.djangolib.markup import HTML, Text
                 draft=current_versions['draft-branch']
             )}
             </div>
-        </article>
+        </div>
         % endif
     </div>
-    % elif not error:
-    <div class="wrapper-error">
-        <div class="error" role="alert">${msg}</div>
-    </div>
     % endif
+    <div class="wrapper-error">
+        <div class="error" aria-live="polite">
+        % if not current_versions and not error:
+            ${msg}
+        % endif
+        </div>
+    </div>
 </div>

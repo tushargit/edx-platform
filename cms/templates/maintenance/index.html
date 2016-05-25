@@ -6,12 +6,11 @@ from django.utils.translation import ugettext as _
 %>
 <%block name="title">${_('Maintenance Dashboard')}</%block>
 <%block name="viewcontent">
-<section class="container maintenance-content">
-    <ul>
+<div class="container maintenance-content">
+    <ul class="maintenance-list">
         % for view in views.values():
-        <li><a href='${view["url"]}'>${view['name']}</a>${view['description']}
-        </li>
+        <li><a href='${view["url"]}'>${view['name']}</a>${view['description']}</li>
         % endfor
     </ul>
-</section>
+</div>
 </%block>
