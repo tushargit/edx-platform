@@ -96,7 +96,11 @@
   %endif
 
     ## Translators: a table of URL links to report files appears after this sentence.
-    <p>${HTML(_("<b>Note</b>: To keep student data secure, you cannot save or email these links for direct access. Copies of links expire within 5 minutes."))}</p><br>
+    <p>
+        ${Text(_("{note_start}: To keep student data secure, you cannot save or email these links for direct access. Copies of links expire within 5 minutes.")).format(
+            note_start=HTML("<strong>Note</strong>")
+        )}
+    </p><br>
 
     <div class="report-downloads-table" id="report-downloads-table" data-endpoint="${ section_data['list_report_downloads_url'] }" ></div>
   </div>

@@ -97,7 +97,7 @@
   %if settings.FEATURES.get('ENABLE_SYSADMIN_DASHBOARD', ''):
       <p>
         ## Translators: git is a version-control system; see http://git-scm.com/about
-        ${HTML(_("View detailed Git import logs for this course {link_start}by clicking here{link_end}.")).format(
+        ${Text(_("View detailed Git import logs for this course {link_start}by clicking here{link_end}.")).format(
             link_start=HTML('<a href="{}">').format(section_data['detailed_gitlogs_url']),
             link_end=HTML('</a>')
         )}

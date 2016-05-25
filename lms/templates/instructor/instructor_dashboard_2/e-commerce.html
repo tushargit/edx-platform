@@ -118,7 +118,11 @@ import pytz
             <p>${_("The following reports are available for download. Reports are not deleted. A link to every report remains available on this page, identified by the date and time (in UTC) that the report was generated.")}</p>
 
             ## Translators: a table of URL links to report files appears after this sentence.
-            <p>${Text(_("<b>Note</b>: To help protect learner data, links to these reports that you save outside of this page or that you send or receive in email expire after five minutes."))}</p><br>
+            <p>
+                ${Text(_("{note_start}: To help protect learner data, links to these reports that you save outside of this page or that you send or receive in email expire after five minutes.")).format(
+                    note_start=HTML("<strong>Note</strong>")
+                )}
+            </p><br>
 
             <div class="report-downloads-table" id="report-downloads-table"
                 data-endpoint="${ section_data['list_financial_report_downloads_url'] }"></div>
@@ -265,12 +269,12 @@ import pytz
              url: "${section_data['sale_validation_url'] | n, js_escaped_string}",
              success: function (data) {
                  $('#error-msg').attr('class','success-msgs')
-                 $('#error-msg').text(data.message).show();
+                 $('#error-msg').edx.HtmlUtils.setHtml(data.message).show();
                  $('#invoice_number').val('');
              },
              error: function(jqXHR, textStatus, errorThrown) {
                  $('#error-msg').attr('class','error-msgs')
-                 $('#error-msg').text(jqXHR.responseText).show();
+                 $('#error-msg').edx.HtmlUtils.setHtml(jqXHR.responseText).show();
              }
          });
      });
@@ -307,7 +311,7 @@ import pytz
          error: function(jqXHR, textStatus, errorThrown) {
            var data = $.parseJSON(jqXHR.responseText);
            $('#error-msg').attr('class','error-msgs')
-           $('#error-msg').text(data.message).show();
+           $('#error-msg').edx.HtmlUtils.setHtml(data.message).show();
          }
        });
      });
@@ -332,7 +336,7 @@ import pytz
          error: function(jqXHR, textStatus, errorThrown) {
            var data = $.parseJSON(jqXHR.responseText);
            $('#error-msg').attr('class','error-msgs')
-           $('#error-msg').text(data.message).show();
+           $('#error-msg').edx.HtmlUtils.setHtml(data.message).show();
            anchor.removeData("disabled");
          }
        });

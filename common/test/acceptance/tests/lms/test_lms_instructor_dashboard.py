@@ -4,7 +4,6 @@ End-to-end tests for the LMS Instructor Dashboard.
 """
 
 import ddt
-import os
 
 from nose.plugins.attrib import attr
 from bok_choy.promise import EmptyPromise
