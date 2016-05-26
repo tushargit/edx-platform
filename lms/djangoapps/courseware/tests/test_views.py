@@ -60,6 +60,9 @@ from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory, check_mongo_calls
 from openedx.core.djangoapps.credit.api import set_credit_requirements
 from openedx.core.djangoapps.credit.models import CreditCourse, CreditProvider
+from courseware.model_data import FieldDataCache
+from xmodule.x_module import STUDENT_VIEW
+from courseware import module_render as render
 
 
 @attr('shard_1')
@@ -1719,6 +1722,43 @@ class TestIndexView(ModuleStoreTestCase):
         )
         self.assertIn("Activate Block ID: test_block_id", response.content)
 
+    def test_negative_position(self):
+        self._assert_redirected_view_at_position(-5, 1)
+
+    def test_positive_position(self):
+        self._assert_redirected_view_at_position(2, 2)
+
+    def test_large_positive_position(self):
+        self._assert_redirected_view_at_position(8, 1)
+
+    def test_zero_position(self):
+        self._assert_redirected_view_at_position(0, 1)
+
+    def _assert_redirected_view_at_position(self, input_position, expected_position):
+        mock_user = UserFactory()
+        self.client.login(username=mock_user.username, password='test')
+        course = CourseFactory()
+        chapter = ItemFactory.create(parent=course, category='chapter')
+        section = ItemFactory.create(parent=chapter, category='sequential', display_name="Sequence")
+        vertical1 = ItemFactory.create(parent=section, category='vertical', display_name="Vertical1")
+        vertical2 = ItemFactory.create(parent=section, category='vertical', display_name="Vertical2")
+        vertical3 = ItemFactory.create(parent=section, category='vertical', display_name="Vertical3")
+
+        CourseEnrollmentFactory(user=mock_user, course_id=course.id)
+
+        response = self.client.get(
+            reverse(
+                'courseware_position',
+                kwargs={
+                    'course_id': unicode(course.id),
+                    'chapter': chapter.url_name,
+                    'section': section.url_name,
+                    'position': input_position,
+                }
+            )
+        )
+
+        self.assertIn('data-position="{}"'.format(expected_position), response.content)
 
 class TestIndexViewWithGating(ModuleStoreTestCase, MilestonesTestCaseMixin):
     """

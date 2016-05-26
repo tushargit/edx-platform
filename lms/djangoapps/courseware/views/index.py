@@ -179,11 +179,11 @@ class CoursewareIndex(View):
 
     def _verify_position(self):
         """
-        Verify that the given position is in fact an int.
+        Verify that the given position is in fact an int and at least 1.
         """
         if self.position is not None:
             try:
-                self.position = max(int(self.position), 1) # test change
+                self.position = max(int(self.position), 1)
             except ValueError:
                 raise Http404(u"Position {} is not an integer!".format(self.position))
 
