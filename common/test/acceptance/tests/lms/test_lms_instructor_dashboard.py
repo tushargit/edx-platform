@@ -71,10 +71,10 @@ class BulkEmailTest(BaseInstructorDashboardTest):
         """
         self.send_email_page.a11y_audit.config.set_rules({
             "ignore": [
-                'link-href'  # AC-415 will enable these,
                 'button-name',
                 'color-contrast',
-                'list'
+                'list',
+                'link-href',  # AC-415 will enable these
             ]
         })
         self.send_email_page.a11y_audit.check_for_accessibility_errors()
@@ -197,7 +197,7 @@ class AutoEnrollmentWithCSVTest(BaseInstructorDashboardTest):
                 'data-table',
                 'duplicate-id',
                 'color-contrast',
-                'link-href'  # AC-415 will enable these
+                'link-href',  # AC-415 will enable these
             ]
         })
         self.auto_enroll_section.a11y_audit.check_for_accessibility_errors()
@@ -399,7 +399,7 @@ class ProctoredExamsTest(BaseInstructorDashboardTest):
         self.track_selection_page.a11y_audit.config.set_rules({
             "ignore": [
                 'document-title',
-                'html-lang'
+                'html-lang',
             ]
         })
         self.track_selection_page.a11y_audit.check_for_accessibility_errors()
@@ -412,7 +412,7 @@ class ProctoredExamsTest(BaseInstructorDashboardTest):
         self.payment_and_verification_flow.a11y_audit.config.set_rules({
             "ignore": [
                 'document-title',
-                'html-lang'
+                'html-lang',
             ]
         })
         self.payment_and_verification_flow.a11y_audit.check_for_accessibility_errors()
@@ -425,7 +425,7 @@ class ProctoredExamsTest(BaseInstructorDashboardTest):
         self.immediate_verification_page.a11y_audit.config.set_rules({
             "ignore": [
                 'document-title',
-                'html-lang'
+                'html-lang',
             ]
         })
         self.immediate_verification_page.a11y_audit.check_for_accessibility_errors()
@@ -451,7 +451,7 @@ class ProctoredExamsTest(BaseInstructorDashboardTest):
         self.fake_payment_page.a11y_audit.config.set_rules({
             "ignore": [
                 'document-title',
-                'html-lang'
+                'html-lang',
             ]
         })
         self.fake_payment_page.a11y_audit.check_for_accessibility_errors()
@@ -464,7 +464,7 @@ class ProctoredExamsTest(BaseInstructorDashboardTest):
         self.problem_page.a11y_audit.config.set_rules({
             "ignore": [
                 'document-title',
-                'html-lang'
+                'html-lang',
             ]
         })
         self.problem_page.a11y_audit.check_for_accessibility_errors()
@@ -675,7 +675,7 @@ class EntranceExamGradeTest(BaseInstructorDashboardTest):
         """
         self.student_admin_section.a11y_audit.config.set_rules({
             "ignore": [
-                'link-href'  # AC-415 will enable these
+                'link-href',  # AC-415 will enable these
             ]
         })
         self.student_admin_section.a11y_audit.check_for_accessibility_errors()
@@ -795,7 +795,7 @@ class DataDownloadsTest(BaseInstructorDashboardTest):
         """
         self.data_download_section.a11y_audit.config.set_rules({
             "ignore": [
-                'link-href'  # AC-415 will enable these
+                'link-href',  # AC-415 will enable these
             ]
         })
         self.data_download_section.a11y_audit.check_for_accessibility_errors()
@@ -1101,7 +1101,7 @@ class CertificatesTest(BaseInstructorDashboardTest):
                 'duplicate-id',
                 'label',
                 'radiogroup',
-                'link-href'  # AC-415 will enable these
+                'link-href',  # AC-415 will enable these
             ]
         })
         self.certificates_section.a11y_audit.check_for_accessibility_errors()
@@ -1318,7 +1318,7 @@ class CertificateInvalidationTest(BaseInstructorDashboardTest):
                 'duplicate-id',
                 'label',
                 'radiogroup',
-                'link-href'  # AC-415 will enable these
+                'link-href',  # AC-415 will enable these
             ]
         })
         self.certificates_section.a11y_audit.check_for_accessibility_errors()
