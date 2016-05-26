@@ -10,6 +10,7 @@ import re
 
 import ddt
 from django.core.urlresolvers import reverse
+import freezegun
 from nose.plugins.attrib import attr
 from pytz import UTC
 
@@ -161,8 +162,11 @@ class SupportViewEnrollmentsTests(SharedModuleStoreTestCase, SupportViewTestCase
         self.course = CourseFactory(display_name=u'teꜱᴛ')
         self.student = UserFactory.create(username='student', email='test@example.com', password='test')
 
-        for mode in (CourseMode.AUDIT, CourseMode.VERIFIED):
+        for mode in (
+                CourseMode.AUDIT, CourseMode.PROFESSIONAL, CourseMode.NO_ID_PROFESSIONAL_MODE
+        ):
             CourseModeFactory.create(mode_slug=mode, course_id=self.course.id)  # pylint: disable=no-member
+        self.verified_mode = CourseModeFactory.create(mode_slug=CourseMode.VERIFIED, course_id=self.course.id)  # pylint: disable=no-member
 
         self.verification_deadline = VerificationDeadline(
             course_key=self.course.id,  # pylint: disable=no-member
@@ -200,7 +204,7 @@ class SupportViewEnrollmentsTests(SharedModuleStoreTestCase, SupportViewTestCase
             'verified_upgrade_deadline': None,
         }, data[0])
         self.assertEqual(
-            {CourseMode.VERIFIED, CourseMode.AUDIT},
+            {CourseMode.VERIFIED, CourseMode.AUDIT, CourseMode.NO_ID_PROFESSIONAL_MODE, CourseMode.PROFESSIONAL},
             {mode['slug'] for mode in data[0]['course_modes']}
         )
 
@@ -269,3 +273,76 @@ class SupportViewEnrollmentsTests(SharedModuleStoreTestCase, SupportViewTestCase
         self.assertIsNotNone(re.match(error_message, response.content))
         self.assert_enrollment(CourseMode.AUDIT)
         self.assertIsNone(ManualEnrollmentAudit.get_manual_enrollment_by_email(self.student.email))
+
+    @freezegun.freeze_time('2016-01-02 12:00:00')
+    @ddt.data('username', 'email')
+    def test_get_enrollments_with_expired_mode(self, search_string_type):
+        """ Verify that verified mode with expired date will appear on support page. """
+        self.verified_mode.expiration_datetime = datetime.now(UTC) + timedelta(days=-1)
+        self.verified_mode.save()
+
+        url = reverse(
+            'support:enrollment_list',
+            kwargs={'username_or_email': getattr(self.student, search_string_type)}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(len(data), 1)
+
+        self.assertEqual(
+            self._generate_modes_data(),
+            data[0]['course_modes']
+        )
+
+        self.assertEqual(
+            {CourseMode.VERIFIED, CourseMode.AUDIT, CourseMode.NO_ID_PROFESSIONAL_MODE, CourseMode.PROFESSIONAL},
+            {mode['slug'] for mode in data[0]['course_modes']}
+        )
+
+    def _generate_modes_data(self):
+        """ Generate course modes dict """
+
+        modes = CourseMode.modes_for_course(
+            self.course.id,
+            include_expired=True
+        )
+        modes_data = []
+        for mode in modes:
+            expiry = mode.expiration_datetime.strftime('%Y-%m-%dT%H:%M:%SZ') if mode.expiration_datetime else None
+            modes_data.append({
+                'sku': mode.sku,
+                'expiration_datetime': expiry,
+                'name': mode.name,
+                'currency': mode.currency,
+                'bulk_sku': mode.bulk_sku,
+                'min_price': mode.min_price,
+                'suggested_prices': mode.suggested_prices,
+                'slug': mode.slug,
+                'description': mode.description
+            })
+
+        return modes_data
+
+    @ddt.data('username', 'email')
+    def test_change_enrollment_to_expired_verified(self, search_string_type):
+        """ Verify that support staff can change the student enrollment
+        to expired verified mode.
+        """
+        self.verified_mode.expiration_datetime = datetime.now(UTC) + timedelta(days=-100)
+        self.verified_mode.save()
+
+        self.assertIsNone(ManualEnrollmentAudit.get_manual_enrollment_by_email(self.student.email))
+        url = reverse(
+            'support:enrollment_list',
+            kwargs={'username_or_email': getattr(self.student, search_string_type)}
+        )
+        response = self.client.post(url, data={
+            'course_id': unicode(self.course.id),  # pylint: disable=no-member
+            'old_mode': CourseMode.AUDIT,
+            'new_mode': CourseMode.VERIFIED,
+            'reason': 'Financial Assistance'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(ManualEnrollmentAudit.get_manual_enrollment_by_email(self.student.email))
+        self.assert_enrollment(CourseMode.VERIFIED)
