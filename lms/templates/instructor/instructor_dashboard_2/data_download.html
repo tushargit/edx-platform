@@ -97,8 +97,9 @@
 
     ## Translators: a table of URL links to report files appears after this sentence.
     <p>
-        ${Text(_("{note_start}: To keep student data secure, you cannot save or email these links for direct access. Copies of links expire within 5 minutes.")).format(
-            note_start=HTML("<strong>Note</strong>")
+        ${Text(_("{strong_start}Note{strong_end}: To keep student data secure, you cannot save or email these links for direct access. Copies of links expire within 5 minutes.")).format(
+            strong_start=HTML("<strong>"),
+            strong_end=HTML("</strong>")
         )}
     </p><br>
 

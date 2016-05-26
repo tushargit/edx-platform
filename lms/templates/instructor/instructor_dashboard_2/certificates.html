@@ -85,7 +85,7 @@ from openedx.core.djangolib.js_utils import dump_js_escaped_json, js_escaped_str
                     <input type="button" id="disabled-btn-start-generating-certificates" class="is-disabled" aria-disabled="true" value="${_('Generate Certificates')}"/>
                 % else:
                     <p class="under-heading">
-                        ${HTML(_("When you are ready to generate certificates for your course, click Generate Certificates. You do not need to do this<br/>if you have set the certificate mode to on-demand generation."))}
+                        ${Text(_("When you are ready to generate certificates for your course, click Generate Certificates. You do not need to do this if you have set the certificate mode to on-demand generation."))}
                     </p>
                     <input type="button" class="btn-blue" id="btn-start-generating-certificates" value="${_('Generate Certificates')}" data-endpoint="${section_data['urls']['start_certificate_generation']}"/>
                 %endif
@@ -112,7 +112,7 @@ from openedx.core.djangolib.js_utils import dump_js_escaped_json, js_escaped_str
         <h3 class="hd hd-3">${_("Regenerate Certificates")}</h3>
         <form id="certificate-regenerating-form" method="post" action="${section_data['urls']['start_certificate_regeneration']}">
             <p class="under-heading">
-                ${HTML(_('To regenerate certificates for your course, choose the learners who will receive regenerated certificates and click <br/> Regenerate Certificates.'))}
+                ${Text(_('To regenerate certificates for your course, choose the learners who will receive regenerated certificates and click Regenerate Certificates.'))}
             </p>
 
                 <label style="display: inline" for="certificate_status_${section_data['status'].downloadable}">

@@ -119,8 +119,9 @@ import pytz
 
             ## Translators: a table of URL links to report files appears after this sentence.
             <p>
-                ${Text(_("{note_start}: To help protect learner data, links to these reports that you save outside of this page or that you send or receive in email expire after five minutes.")).format(
-                    note_start=HTML("<strong>Note</strong>")
+                ${Text(_("{strong_start}Note{strong_end}: To help protect learner data, links to these reports that you save outside of this page or that you send or receive in email expire after five minutes.")).format(
+                    strong_start=HTML("<strong>"),
+                    strong_end=HTML("</strong>")
                 )}
             </p><br>
 
