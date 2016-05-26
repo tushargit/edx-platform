@@ -13,7 +13,77 @@ from openedx.core.djangolib.js_utils import (
 
 <%block name="js_extra">
 <%static:require_module module_name="js/learner_dashboard/program_details_factory" class_name="ProgramDetailsFactory">
-ProgramDetailsFactory({});
+ProgramDetailsFactory({programData:
+    {
+        uuid: '12-ab',
+        name: 'Astrophysics',
+        subtitle: 'Learn contemporary astrophysics from the leaders in the field.',
+        category: 'xseries',
+        organizations: [
+            {
+                display_name: 'Australian National University',
+                key: 'ANUx'
+            }
+        ],
+        banner_image_urls: {
+            w1440h480: '',
+            w348h116: '',
+            w726h242: '',
+            w435h145: ''
+        },
+        program_details_url: 'https://localhost:8000/program_details.html',
+        course_codes: [
+            {      
+                certificate_url: '',
+                course_end: 'Jun 13, 2016',
+                course_modes: [],
+                course_key: 'course-v1:ANUx+ANU-ASTRO1x+3T2015',
+                courseware_url: 'http://localhost:8000/courses/course-v1:edX+DemoX+Demo_Course/info',
+                course_start: 'Apr 25, 2016',
+                course_started: true,
+                display_name: 'Astrophysics: Exploring Exoplanets',
+                enrollment_status: 'enrolled',
+                image_url: 'https://www.edx.org/sites/default/files/styles/course_video_banner/public/course/image/featured-card/italian1x-video_still_318x210.jpg?itok=l_bMTvC9',
+                key: 'ANU-ASTRO1x',
+                marketing_url: 'https://www.edx.org/course/astrophysics-exploring-exoplanets-anux-anu-astro2x-1',
+                organization: {
+                    display_name: 'Australian National University',
+                    key: 'ANUx'
+                },
+                run_modes: [{
+                    course_key: '12313',
+                    mode_slug: 'verified',
+                    run_key: '2T2016',
+                    start_date: ''
+                }]
+            },
+            {      
+                certificate_url: '',
+                course_end: 'Apr 11, 2017',
+                course_modes: [],
+                course_key: 'course-v1:ANUx+ALONEx+3T2015',
+                courseware_url: null,
+                course_start: 'Apr 15, 2016',
+                course_started: true,
+                display_name: 'Cosmology: Are We Alone',
+                enrollment_status: null,
+                image_url: 'https://prod-edx-mktg-edit.edx.org/sites/default/files/styles/course_video_banner/public/course/image/featured-card/analyzing_and_visualizing_data_with_excel_318x210.jpg?itok=zkKbrFi5',
+                key: 'ANU-ALONEx',
+                marketing_url: 'https://www.edx.org/course/Are-We-Alone-ANU-Alonex-1',
+                organization: {
+                    display_name: 'Australian National University',
+                    key: 'ANUx'
+                },
+                run_modes: [{
+                    course_key: '14523',
+                    mode_slug: 'verified',
+                    run_key: '3T2016',
+                    start_date: ''
+                }]
+            }
+        ]
+    }
+});
 </%static:require_module>
 </%block>
 

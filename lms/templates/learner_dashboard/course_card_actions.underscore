@@ -1,0 +1,11 @@
+<% if(enrollment_status){ %>
+    <div class="enrollment-info"><%- gettext('ENROLLED') %></div>
+    <a id="view_course_link" href="<%- courseware_url %>" class="btn-neutral btn-large view-course-link">
+        <%- gettext('View Course') %>
+    </a>
+<% }else{ %>
+    <div class="enrollment-info"><%- gettext('NOT ENROLLED') %></div>
+    <button id="enroll_button" type="button" class="btn-brand btn-large enroll-button">
+        <%- gettext('Enroll Now') %>
+    </button>
+<% } %>
