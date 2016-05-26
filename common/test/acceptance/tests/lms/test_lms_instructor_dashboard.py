@@ -1319,6 +1319,7 @@ class CertificateInvalidationTest(BaseInstructorDashboardTest):
                 'label',
                 'radiogroup',
                 'table',
+                'data-table',
                 'link-href',  # AC-415 will enable these
             ]
         })
