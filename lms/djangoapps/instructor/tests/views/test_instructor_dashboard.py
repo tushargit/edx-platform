@@ -27,6 +27,7 @@ from shoppingcart.models import PaidCourseRegistration, Order, CourseRegCodeItem
 from course_modes.models import CourseMode
 from student.roles import CourseFinanceAdminRole
 from student.models import CourseEnrollment
+from openedx.core.djangolib.markup import HTML, Text
 
 
 def intercept_renderer(path, context):

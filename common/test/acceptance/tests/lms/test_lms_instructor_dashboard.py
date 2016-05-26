@@ -1318,6 +1318,7 @@ class CertificateInvalidationTest(BaseInstructorDashboardTest):
                 'duplicate-id',
                 'label',
                 'radiogroup',
+                'table',
                 'link-href',  # AC-415 will enable these
             ]
         })
