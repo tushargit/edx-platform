@@ -1,5 +1,8 @@
-<%! from django.utils.translation import ugettext as _ %>
 <%page args="section_data" expression_filter="h"/>
+<%!
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.markup import HTML, Text
+%>
 
 <div class="data-download-container action-type-container">
   <div class="request-response-error msg msg-error copy" id="data-request-response-error"></div>
@@ -99,7 +102,7 @@
     <p>
         ${Text(_("{strong_start}Note{strong_end}: To keep student data secure, you cannot save or email these links for direct access. Copies of links expire within 5 minutes.")).format(
             strong_start=HTML("<strong>"),
-            strong_end=HTML("</strong>")
+            strong_end=HTML("</strong>"),
         )}
     </p><br>
 

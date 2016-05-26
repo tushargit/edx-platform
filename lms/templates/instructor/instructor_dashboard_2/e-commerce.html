@@ -3,6 +3,7 @@
 from django.utils.translation import ugettext as _
 from datetime import datetime, timedelta
 from openedx.core.djangolib.js_utils import js_escaped_string
+from openedx.core.djangolib.markup import HTML, Text
 import pytz
 %>
 <%include file="add_coupon_modal.html" args="section_data=section_data" />
@@ -121,7 +122,7 @@ import pytz
             <p>
                 ${Text(_("{strong_start}Note{strong_end}: To help protect learner data, links to these reports that you save outside of this page or that you send or receive in email expire after five minutes.")).format(
                     strong_start=HTML("<strong>"),
-                    strong_end=HTML("</strong>")
+                    strong_end=HTML("</strong>"),
                 )}
             </p><br>
 

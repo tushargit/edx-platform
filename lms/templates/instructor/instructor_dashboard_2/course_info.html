@@ -1,5 +1,8 @@
-<%! from django.utils.translation import ugettext as _ %>
 <%page args="section_data" expression_filter="h"/>
+<%!
+from django.utils.translation import ugettext as _
+from openedx.core.djangolib.markup import HTML, Text
+%>
 
 %if settings.FEATURES.get('DISPLAY_ANALYTICS_ENROLLMENTS') or section_data.get('enrollment_message'):
   <h3 class="hd hd-3">${_("Enrollment Information")}</h3>
