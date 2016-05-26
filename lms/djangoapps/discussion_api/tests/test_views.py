@@ -861,6 +861,16 @@ class ThreadViewSetPartialUpdateTest(DiscussionAPIViewTestMixin, ModuleStoreTest
             }
         )
 
+    def test_patch_read_mutual_exclusive(self):
+        self.register_get_user_response(self.user)
+        self.register_thread()
+        patch_data = {"raw_body": "updated thread text", "read": True}
+        response = self.request_patch(patch_data)
+        self.assertEqual(response.status_code, 400)
+        response_data = json.loads(response.content)
+        expected_response_data = {"developer_message": "No Other fields should be updated with 'read' field."}
+        self.assertEqual(expected_response_data, response_data)
+
 
 @httpretty.activate
 @disable_signal(api, 'thread_deleted')

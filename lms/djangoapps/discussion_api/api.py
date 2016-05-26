@@ -490,9 +490,16 @@ def _check_initializable_comment_fields(data, context):  # pylint: disable=inval
 
 def _check_editable_fields(cc_content, data, context):
     """
-    Raise ValidationError if the given update data contains a field that is not
-    editable by the requesting user
+    Raise ValidationError if:
+    1. the given update data contains a field that is not editable by the requesting user.
+    2. data contains other editable fields along with 'read' field.
     """
+    # updating 'read' field should not update activity date for thread
+    # while updating any other field should update activity date;
+    # hence, 'read' is mutually exclusive to all other editable fields.
+    if 'read' in data and len(data) > 1:
+        raise ValidationError("No Other fields should be updated with 'read' field.")
+
     _check_fields(
         get_editable_fields(cc_content, context),
         data,
