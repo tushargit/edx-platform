@@ -4,6 +4,7 @@ Middleware to serve assets.
 
 import logging
 
+import re
 import datetime
 import newrelic.agent
 from django.http import (
@@ -27,6 +28,8 @@ from xmodule.exceptions import NotFoundError
 
 log = logging.getLogger(__name__)
 HTTP_DATE_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
+VERSIONED_ASSETS_PREFIX = '/assets'
+VERSIONED_ASSETS_PATTERN = r'/assets/[a-f0-9]{32}'
 
 
 class StaticContentServer(object):
@@ -36,7 +39,12 @@ class StaticContentServer(object):
             request.path.startswith('/' + XASSET_LOCATION_TAG + '/')
             or
             request.path.startswith('/' + AssetLocator.CANONICAL_NAMESPACE)
+            or
+            self.is_versioned_request(request)
         )
+
+    def is_versioned_request(self, request):
+        return request.path.startswith(VERSIONED_ASSETS_PREFIX)
 
     def process_request(self, request):
         """Process the given request"""
@@ -44,6 +52,11 @@ class StaticContentServer(object):
             # Make sure we can convert this request into a location.
             if AssetLocator.CANONICAL_NAMESPACE in request.path:
                 request.path = request.path.replace('block/', 'block@', 1)
+
+            # If this is a versioned request, chop off the prefix.
+            if self.is_versioned_request(request):
+                request.path = re.sub(VERSIONED_ASSETS_PATTERN, '', request.path)
+
             try:
                 loc = StaticContent.get_location_from_path(request.path)
             except (InvalidLocationError, InvalidKeyError):

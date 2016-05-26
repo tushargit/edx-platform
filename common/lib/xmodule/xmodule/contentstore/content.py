@@ -5,10 +5,10 @@ from xmodule.assetstore.assetmgr import AssetManager
 
 XASSET_LOCATION_TAG = 'c4x'
 XASSET_SRCREF_PREFIX = 'xasset:'
-
 XASSET_THUMBNAIL_TAIL_NAME = '.jpg'
-
 STREAM_DATA_CHUNK_SIZE = 1024
+BASE_ASSET_PATH = '/assets'
+
 
 import os
 import logging
@@ -26,7 +26,7 @@ from PIL import Image
 
 class StaticContent(object):
     def __init__(self, loc, name, content_type, data, last_modified_at=None, thumbnail_location=None, import_path=None,
-                 length=None, locked=False):
+                 length=None, locked=False, content_digest=None):
         self.location = loc
         self.name = name  # a display string which can be edited, and thus not part of the location which needs to be fixed
         self.content_type = content_type
@@ -38,6 +38,7 @@ class StaticContent(object):
         # cycles
         self.import_path = import_path
         self.locked = locked
+        self.content_digest = content_digest
 
     @property
     def is_thumbnail(self):
@@ -168,6 +169,15 @@ class StaticContent(object):
             return StaticContent.compute_location(course_key, path)
 
     @staticmethod
+    def is_excluded_asset_type(path, excluded_exts):
+        """
+        Check if this is an allowed file extension to serve.
+
+        Some files aren't served through the CDN in order to avoid same-origin policy/CORS-related issues.
+        """
+        return any(path.lower().endswith(excluded_ext.lower()) for excluded_ext in excluded_exts)
+
+    @staticmethod
     def get_canonicalized_asset_path(course_key, path, base_url, excluded_exts):
         """
         Returns a fully-qualified path to a piece of static content.
@@ -191,17 +201,17 @@ class StaticContent(object):
 
         # Check the status of the asset to see if this can be served via CDN aka publicly.
         serve_from_cdn = False
+        content_digest = None
         try:
             content = AssetManager.find(asset_key, as_stream=True)
-            is_locked = getattr(content, "locked", True)
-            serve_from_cdn = not is_locked
+            serve_from_cdn = not getattr(content, "locked", True)
+            content_digest = content.content_digest
         except (ItemNotFoundError, NotFoundError):
             # If we can't find the item, just treat it as if it's locked.
             serve_from_cdn = False
 
-        # See if this is an allowed file extension to serve.  Some files aren't served through the
-        # CDN in order to avoid same-origin policy/CORS-related issues.
-        if any(relative_path.lower().endswith(excluded_ext.lower()) for excluded_ext in excluded_exts):
+        # Do a generic check to see if anything about this asset disqualifies it from being CDN'd.
+        if StaticContent.is_excluded_asset_type(relative_path, excluded_exts):
             serve_from_cdn = False
 
         # Update any query parameter values that have asset paths in them. This is for assets that
@@ -218,8 +228,13 @@ class StaticContent(object):
 
         serialized_asset_key = StaticContent.serialize_asset_key_with_slash(asset_key)
         base_url = base_url if serve_from_cdn else ''
+        asset_path = serialized_asset_key
 
-        return urlunparse((None, base_url, serialized_asset_key, params, urlencode(updated_query_params), fragment))
+        # If the content has a digest (i.e. md5sum) value specified, create a versioned path to the asset using it.
+        if content_digest:
+            asset_path = BASE_ASSET_PATH + '/' + content_digest + serialized_asset_key
+
+        return urlunparse((None, base_url, asset_path, params, urlencode(updated_query_params), fragment))
 
     def stream_data(self):
         yield self._data
@@ -238,10 +253,10 @@ class StaticContent(object):
 
 class StaticContentStream(StaticContent):
     def __init__(self, loc, name, content_type, stream, last_modified_at=None, thumbnail_location=None, import_path=None,
-                 length=None, locked=False):
+                 length=None, locked=False, content_digest=None):
         super(StaticContentStream, self).__init__(loc, name, content_type, None, last_modified_at=last_modified_at,
                                                   thumbnail_location=thumbnail_location, import_path=import_path,
-                                                  length=length, locked=locked)
+                                                  length=length, locked=locked, content_digest=content_digest)
         self._stream = stream
 
     def stream_data(self):

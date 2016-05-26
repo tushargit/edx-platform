@@ -8,6 +8,7 @@ import ddt
 import logging
 import unittest
 from uuid import uuid4
+import md5
 
 from django.conf import settings
 from django.test import RequestFactory
@@ -30,6 +31,10 @@ TEST_DATA_CONTENTSTORE = copy.deepcopy(settings.CONTENTSTORE)
 TEST_DATA_CONTENTSTORE['DOC_STORE_CONFIG']['db'] = 'test_xcontent_%s' % uuid4().hex
 
 TEST_DATA_DIR = settings.COMMON_TEST_DATA_ROOT
+
+
+def get_versioned_asset_url(url):
+    return '/assets/' + md5.new(url).hexdigest() + '/' + url
 
 
 @ddt.ddt
@@ -56,11 +61,13 @@ class ContentStoreToyCourseTest(SharedModuleStoreTestCase):
         # A locked asset
         cls.locked_asset = cls.course_key.make_asset_key('asset', 'sample_static.txt')
         cls.url_locked = unicode(cls.locked_asset)
+        cls.url_locked_versioned = get_versioned_asset_url(unicode(cls.locked_asset))
         cls.contentstore.set_attr(cls.locked_asset, 'locked', True)
 
         # An unlocked asset
         cls.unlocked_asset = cls.course_key.make_asset_key('asset', 'another_static.txt')
         cls.url_unlocked = unicode(cls.unlocked_asset)
+        cls.url_unlocked_versioned = get_versioned_asset_url(unicode(cls.unlocked_asset))
         cls.length_unlocked = cls.contentstore.get_attr(cls.unlocked_asset, 'length')
 
     def setUp(self):
@@ -79,6 +86,14 @@ class ContentStoreToyCourseTest(SharedModuleStoreTestCase):
         """
         self.client.logout()
         resp = self.client.get(self.url_unlocked)
+        self.assertEqual(resp.status_code, 200)
+
+    def test_unlocked_versioned_asset(self):
+        """
+        Test that unlocked assets that are versioned are being served.
+        """
+        self.client.logout()
+        resp = self.client.get(self.url_unlocked_versioned)
         self.assertEqual(resp.status_code, 200)
 
     def test_locked_asset_not_logged_in(self):
