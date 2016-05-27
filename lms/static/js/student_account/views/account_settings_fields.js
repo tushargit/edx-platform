@@ -234,8 +234,8 @@
                 fieldType: 'orderHistory',
                 fieldTemplate: field_order_history_template,
                 events: {
-                    'mouseenter .u-field-orderHistory .u-field-order': 'showDetailsButton',
-                    'mouseleave .u-field-orderHistory .u-field-order': 'hideDetailsButton'
+                    'mouseenter .u-field-order': 'showDetailsButton',
+                    'mouseleave .u-field-order': 'hideDetailsButton'
                 },
 
                 initialize: function (options) {
@@ -264,7 +264,7 @@
                 hideDetailsButton: function () {
                     this.$el.find('.u-field-order-link .u-field-link').addClass('hidden');
                 }
-            }),
+            })
         };
 
         return AccountSettingsFieldViews;
