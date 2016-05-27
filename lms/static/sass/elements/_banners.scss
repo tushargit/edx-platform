@@ -1,0 +1,11 @@
+.full-width-banner {
+	.banner-background-image {
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
+
+	.banner-content {
+		z-index: z-index(mid-front);
+	}
+}
