@@ -36,7 +36,8 @@
                 'error': '<span class="fa fa-exclamation-triangle message-error" aria-hidden="true">' +
                     '</span><span class="sr">' +
                     gettext("Error") + '</span>',
-                'validationError': '<span class="fa fa-exclamation-triangle message-validation-error" aria-hidden="true">' +
+                'validationError': '<span class=' +
+                    '"fa fa-exclamation-triangle message-validation-error" aria-hidden="true">' +
                     '</span><span class="sr">' +
                     gettext("Validation Error") + '</span>',
                 'inProgress': '<span class="fa fa-spinner fa-pulse message-in-progress" aria-hidden="true">' +
