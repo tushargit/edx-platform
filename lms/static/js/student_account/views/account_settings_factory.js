@@ -181,7 +181,7 @@
                     'title': gettext('ORDER NAME'),
                     'order_date': gettext('ORDER PLACED'),
                     'price': gettext('TOTAL'),
-                    'number': gettext('Order Number')
+                    'number': gettext('ORDER NUMBER')
                 }
             );
 
@@ -191,7 +191,7 @@
                     subtitle: gettext('This page contains information about orders that you have placed with edX.'),
                     fields: _.map(ordersHistoryData, function(order) {
                         orderNumber = order.number;
-                        if (orderNumber === 'Order Number') {
+                        if (orderNumber === 'ORDER NUMBER') {
                             orderNumber = 'orderId';
                         }
                         return {
