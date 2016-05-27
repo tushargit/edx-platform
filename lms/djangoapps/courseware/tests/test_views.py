@@ -1720,10 +1720,11 @@ class TestIndexView(ModuleStoreTestCase):
         self.assertIn("Activate Block ID: test_block_id", response.content)
 
 
+@ddt.ddt
 class TestIndewViewWithVerticalPositions(ModuleStoreTestCase):
     """
-    Test the index view to handle vertical positions. Loads first position if inputted
-    position is non-positive or greater than number of positions available.
+    Test the index view to handle vertical positions. Confirms that first position is loaded
+    if input position is non-positive or greater than number of positions available.
     """
 
     def setUp(self):
@@ -1767,36 +1768,17 @@ class TestIndewViewWithVerticalPositions(ModuleStoreTestCase):
         """
         self.assertIn('data-position="{}"'.format(expected_position), response.content)
 
-    def test_negative_position(self):
+    @ddt.data(("-1", 1), ("0", 1), ("-0", 1), ("2", 2), ("5", 1))
+    @ddt.unpack
+    def test_vertical_positions(self, input_position, expected_position):
         """
         Load first position when negative position inputted
-        """
-        resp = self._get_course_vertical_by_position(-1)
-        self._assert_correct_position(resp, 1)
-
-    def test_zero_position(self):
-        """
         Load first position when 0/-0 position inputted
-        """
-        resp = self._get_course_vertical_by_position("0")
-        self._assert_correct_position(resp, 1)
-
-        resp = self._get_course_vertical_by_position("-0")
-        self._assert_correct_position(resp, 1)
-
-    def test_positive_position(self):
-        """
         Load given position when 0 < input_position <= num_positions_available
+        Load first position when positive position > num_positions_available
         """
-        resp = self._get_course_vertical_by_position(2)
-        self._assert_correct_position(resp, 2)
-
-    def test_large_positive_position(self):
-        """
-        Load first position when positive positive > num_positions_available
-        """
-        resp = self._get_course_vertical_by_position(5)
-        self._assert_correct_position(resp, 1)
+        resp = self._get_course_vertical_by_position(input_position)
+        self._assert_correct_position(resp, expected_position)
 
 
 class TestIndexViewWithGating(ModuleStoreTestCase, MilestonesTestCaseMixin):
