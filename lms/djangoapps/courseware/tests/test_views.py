@@ -60,9 +60,6 @@ from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory, check_mongo_calls
 from openedx.core.djangoapps.credit.api import set_credit_requirements
 from openedx.core.djangoapps.credit.models import CreditCourse, CreditProvider
-from courseware.model_data import FieldDataCache
-from xmodule.x_module import STUDENT_VIEW
-from courseware import module_render as render
 
 
 @attr('shard_1')
@@ -1722,43 +1719,82 @@ class TestIndexView(ModuleStoreTestCase):
         )
         self.assertIn("Activate Block ID: test_block_id", response.content)
 
-    def test_negative_position(self):
-        self._assert_redirected_view_at_position(-5, 1)
 
-    def test_positive_position(self):
-        self._assert_redirected_view_at_position(2, 2)
+class TestIndewViewWithVerticalPositions(ModuleStoreTestCase):
+    """
+    Test the index view to handle vertical positions. Loads first position if inputted
+    position is non-positive or greater than number of positions available.
+    """
 
-    def test_large_positive_position(self):
-        self._assert_redirected_view_at_position(8, 1)
+    def setUp(self):
+        """
+        Set up initial test data
+        """
+        super(TestIndewViewWithVerticalPositions, self).setUp()
 
-    def test_zero_position(self):
-        self._assert_redirected_view_at_position(0, 1)
+        self.user = UserFactory()
 
-    def _assert_redirected_view_at_position(self, input_position, expected_position):
-        mock_user = UserFactory()
-        self.client.login(username=mock_user.username, password='test')
-        course = CourseFactory()
-        chapter = ItemFactory.create(parent=course, category='chapter')
-        section = ItemFactory.create(parent=chapter, category='sequential', display_name="Sequence")
-        vertical1 = ItemFactory.create(parent=section, category='vertical', display_name="Vertical1")
-        vertical2 = ItemFactory.create(parent=section, category='vertical', display_name="Vertical2")
-        vertical3 = ItemFactory.create(parent=section, category='vertical', display_name="Vertical3")
+        # create course with 3 positions
+        self.course = CourseFactory.create()
+        self.chapter = ItemFactory.create(parent=self.course, category='chapter')
+        self.section = ItemFactory.create(parent=self.chapter, category='sequential', display_name="Sequence")
+        ItemFactory.create(parent=self.section, category='vertical', display_name="Vertical1")
+        ItemFactory.create(parent=self.section, category='vertical', display_name="Vertical2")
+        ItemFactory.create(parent=self.section, category='vertical', display_name="Vertical3")
 
-        CourseEnrollmentFactory(user=mock_user, course_id=course.id)
+        self.client.login(username=self.user, password='test')
+        CourseEnrollmentFactory(user=self.user, course_id=self.course.id)
 
-        response = self.client.get(
+    def get_course_vertical_by_position(self, input_position):
+        """
+        Returns client response to input position.
+        """
+        return self.client.get(
             reverse(
                 'courseware_position',
                 kwargs={
-                    'course_id': unicode(course.id),
-                    'chapter': chapter.url_name,
-                    'section': section.url_name,
+                    'course_id': unicode(self.course.id),
+                    'chapter': self.chapter.url_name,
+                    'section': self.section.url_name,
                     'position': input_position,
                 }
             )
         )
 
+    def _assert_correct_position(self, response, expected_position):
         self.assertIn('data-position="{}"'.format(expected_position), response.content)
+
+    def test_negative_position(self):
+        """
+        Load first position when negative position inputted
+        """
+        resp = self.get_course_vertical_by_position(-1)
+        self._assert_correct_position(resp, 1)
+
+    def test_zero_position(self):
+        """
+        Load first position when 0/-0 position inputted
+        """
+        resp = self.get_course_vertical_by_position("0")
+        self._assert_correct_position(resp, 1)
+
+        resp = self.get_course_vertical_by_position("-0")
+        self._assert_correct_position(resp, 1)
+
+    def test_positive_position(self):
+        """
+        Load given position when 0 < input_position <= num_positions_available
+        """
+        resp = self.get_course_vertical_by_position(2)
+        self._assert_correct_position(resp, 2)
+
+    def test_large_positive_position(self):
+        """
+        Load first position when positive positive > num_positions_available
+        """
+        resp = self.get_course_vertical_by_position(5)
+        self._assert_correct_position(resp, 1)
+
 
 class TestIndexViewWithGating(ModuleStoreTestCase, MilestonesTestCaseMixin):
     """
