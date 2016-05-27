@@ -1745,7 +1745,7 @@ class TestIndewViewWithVerticalPositions(ModuleStoreTestCase):
         self.client.login(username=self.user, password='test')
         CourseEnrollmentFactory(user=self.user, course_id=self.course.id)
 
-    def get_course_vertical_by_position(self, input_position):
+    def _get_course_vertical_by_position(self, input_position):
         """
         Returns client response to input position.
         """
@@ -1762,37 +1762,40 @@ class TestIndewViewWithVerticalPositions(ModuleStoreTestCase):
         )
 
     def _assert_correct_position(self, response, expected_position):
+        """
+        Asserts that the expected position and the position in the response are the same
+        """
         self.assertIn('data-position="{}"'.format(expected_position), response.content)
 
     def test_negative_position(self):
         """
         Load first position when negative position inputted
         """
-        resp = self.get_course_vertical_by_position(-1)
+        resp = self._get_course_vertical_by_position(-1)
         self._assert_correct_position(resp, 1)
 
     def test_zero_position(self):
         """
         Load first position when 0/-0 position inputted
         """
-        resp = self.get_course_vertical_by_position("0")
+        resp = self._get_course_vertical_by_position("0")
         self._assert_correct_position(resp, 1)
 
-        resp = self.get_course_vertical_by_position("-0")
+        resp = self._get_course_vertical_by_position("-0")
         self._assert_correct_position(resp, 1)
 
     def test_positive_position(self):
         """
         Load given position when 0 < input_position <= num_positions_available
         """
-        resp = self.get_course_vertical_by_position(2)
+        resp = self._get_course_vertical_by_position(2)
         self._assert_correct_position(resp, 2)
 
     def test_large_positive_position(self):
         """
         Load first position when positive positive > num_positions_available
         """
-        resp = self.get_course_vertical_by_position(5)
+        resp = self._get_course_vertical_by_position(5)
         self._assert_correct_position(resp, 1)
 
 
