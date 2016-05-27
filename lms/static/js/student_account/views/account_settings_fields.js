@@ -247,10 +247,10 @@
                 render: function () {
                     this.$el.html(this.template({
                         title: this.options.title,
-                        total_price: this.options.total_price,
-                        invoice_id: this.options.invoice_id,
-                        date_placed: this.options.date_placed,
-                        receipt_url: this.options.receipt_url,
+                        totalPrice: this.options.totalPrice,
+                        orderId: this.options.orderId,
+                        orderDate: this.options.orderDate,
+                        receiptUrl: this.options.receiptUrl,
                         valueAttribute: this.options.valueAttribute
                     }));
                     this.delegateEvents();

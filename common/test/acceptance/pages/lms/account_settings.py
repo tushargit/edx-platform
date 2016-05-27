@@ -67,20 +67,17 @@ class AccountSettingsPage(FieldsMixin, PageObject):
 
     @property
     def is_order_history_tab_visible(self):
-        """ Return True if Order History is visible else False"""
+        """ Check if tab with the name "Order History" is visible."""
         return self.q(css='.u-field-orderHistory').visible
 
     def get_value_of_order_history_row_item(self, field_id, field_name):
-        """
-        Return the text value of the provided order field name.
-        """
+        """ Return the text value of the provided order field name."""
         query = self.q(css='.u-field-{} .u-field-order-{}'.format(field_id, field_name))
         return query.text[0] if query.present else None
 
     def hover_over_and_button_is_visible(self, field_id):
-        """
-        Return True if hovering over to order history row show
-        the order details link else False.
+        """ Check that if hovering over the order history row shows the
+        order detail link or not.
         """
         element_to_hover_over = self.q(css='.u-field-{}'.format(field_id)).results[0]
         hover = ActionChains(self.browser).move_to_element(element_to_hover_over)

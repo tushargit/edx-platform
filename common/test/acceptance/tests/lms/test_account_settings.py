@@ -453,8 +453,8 @@ class AccountSettingsPageTest(AccountSettingsTestMixin, WebAppTest):
         # verify that we are on correct tab
         self.assertTrue(self.account_settings_page.is_order_history_tab_visible)
 
-        fields = {'title': 'Test Course', 'date': 'Apr 21, 2016', 'price': '$100.0', 'number': 'Edx-123'}
-        for field_name, value in fields.iteritems():
+        expected_order_data = {'title': 'Test Course', 'date': 'Apr 21, 2016', 'price': '$100.0', 'number': 'Edx-123'}
+        for field_name, value in expected_order_data.iteritems():
             self.assertEqual(
                 self.account_settings_page.get_value_of_order_history_row_item('order-Edx-123', field_name), value
             )

@@ -181,29 +181,26 @@
                     'title': gettext('ORDER NAME'),
                     'order_date': gettext('ORDER PLACED'),
                     'price': gettext('TOTAL'),
-                    'number': gettext('INVOICE ID')
+                    'number': gettext('Order Number')
                 }
             );
 
             ordersSectionData = [
                 {
-                    title: gettext('Your Orders'),
-                    subtitle: gettext(
-                        'View details of our past purchases and, potentially request a refund for a past order. For ' +
-                        'more information on refund request eligibility, please read here.'
-                    ),
+                    title: gettext('My Orders'),
+                    subtitle: gettext('This page contains information about orders that you have placed with edX.'),
                     fields: _.map(ordersHistoryData, function(order) {
                         orderNumber = order.number;
-                        if (orderNumber === 'INVOICE ID') {
-                            orderNumber = 'invoice-id';
+                        if (orderNumber === 'Order Number') {
+                            orderNumber = 'orderId';
                         }
                         return {
                             'view': new AccountSettingsFieldViews.OrderHistoryFieldView({
                                 title: order.title,
-                                total_price: order.price,
-                                invoice_id: order.number,
-                                date_placed: order.order_date,
-                                receipt_url: order.receipt_url,
+                                totalPrice: order.price,
+                                orderId: order.number,
+                                orderDate: order.order_date,
+                                receiptUrl: order.receipt_url,
                                 valueAttribute: 'order-' + orderNumber
                             })
                         };

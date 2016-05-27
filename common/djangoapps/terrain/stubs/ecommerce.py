@@ -11,11 +11,11 @@ class StubEcommerceServiceHandler(StubHttpRequestHandler):  # pylint: disable=mi
 
     def do_GET(self):  # pylint: disable=invalid-name, missing-docstring
         pattern_handlers = {
-            "/api/v2/orders/$": self.get_orders_list,
+            '/api/v2/orders/$': self.get_orders_list,
         }
         if self.match_pattern(pattern_handlers):
             return
-        self.send_response(404, content="404 Not Found")
+        self.send_response(404, content='404 Not Found')
 
     def match_pattern(self, pattern_handlers):
         """

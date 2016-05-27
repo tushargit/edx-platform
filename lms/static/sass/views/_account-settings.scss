@@ -208,20 +208,20 @@
                     }
 
                     .u-field-order-title {
+                        @include float(left);
                         width: 26%;
-                        float: left;
                         font-size: em(20);
                         padding-left: ($baseline*2);
                     }
 
                     .u-field-order-value {
+                        @include float(left);
                         width: 12%;
-                        float: left;
                     }
 
                     .u-field-order-date {
+                        @include float(left);
                         width: 16%;
-                        float: left;
                     }
 
                     .u-field-order-link {
@@ -230,8 +230,6 @@
 
                         .u-field-link {
                             @extend %ui-clear-button;
-
-                            // set styles
                             @extend %btn-pl-default-base;
                             @include font-size(14);
                             border: 1px solid $blue;
@@ -332,7 +330,7 @@
                 }
             }
 
-            .u-field-order-invoice-id {
+            .u-field-order-orderId {
                 border: none;
                 margin-top: $baseline;
                 margin-bottom: 0;
