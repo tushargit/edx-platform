@@ -26,6 +26,8 @@ from xmodule.modulestore.mongo import MongoModuleStore
 from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory, check_mongo_calls
 from xmodule.modulestore.xml import XMLModuleStore
+from xmodule.modulestore.exceptions import ItemNotFoundError
+from xmodule.exceptions import NotFoundError
 from xmodule.assetstore.assetmgr import AssetManager
 
 DATA_DIRECTORY = 'data_dir'
@@ -191,7 +193,6 @@ class CanonicalContentTest(SharedModuleStoreTestCase):
 
     def setUp(self):
         super(CanonicalContentTest, self).setUp()
-        self.maxDiff = None
 
     @classmethod
     def setUpClass(cls):
@@ -245,7 +246,7 @@ class CanonicalContentTest(SharedModuleStoreTestCase):
         try:
             content = AssetManager.find(asset_key, as_stream=True)
             return content.content_digest
-        except:
+        except (ItemNotFoundError, NotFoundError):
             return None
 
     @classmethod
@@ -494,10 +495,10 @@ class CanonicalContentTest(SharedModuleStoreTestCase):
 
         digest = CanonicalContentTest.get_content_digest_for_asset_path(prefix, start)
         if digest:
-            adjusted_asset_key = 'assets/[a-f0-9]{{32}}/asset-v1:a+b+{}+type@asset+block'.format(prefix)
-            adjusted_th_key = 'assets/[a-f0-9]{{32}}/asset-v1:a+b+{}+type@thumbnail+block'.format(prefix)
-            encoded_asset_key = quote_plus('/assets/MARKER/asset-v1:a+b+{}+type@asset+block@'.format(prefix))
-            encoded_asset_key = encoded_asset_key.replace('MARKER', '[a-f0-9]{32}')
+            adjusted_asset_key = 'assets/courseware/[a-f0-9]{{32}}/asset-v1:a+b+{}+type@asset+block'.format(prefix)
+            adjusted_th_key = 'assets/courseware/[a-f0-9]{{32}}/asset-v1:a+b+{}+type@thumbnail+block'.format(prefix)
+            encoded_asset_key = quote_plus('/assets/courseware/MARK/asset-v1:a+b+{}+type@asset+block@'.format(prefix))
+            encoded_asset_key = encoded_asset_key.replace('MARK', '[a-f0-9]{32}')
 
         expected = expected.format(
             prfx=prefix,
@@ -690,10 +691,10 @@ class CanonicalContentTest(SharedModuleStoreTestCase):
         # Adjust for content digest.
         digest = CanonicalContentTest.get_content_digest_for_asset_path(prefix, start)
         if digest:
-            adjusted_c4x_block = 'assets/MARKER/c4x/a/b/asset'
+            adjusted_c4x_block = 'assets/courseware/MARK/c4x/a/b/asset'
             encoded_c4x_block = quote_plus('/' + adjusted_c4x_block + '/')
-            adjusted_c4x_block = adjusted_c4x_block.replace('MARKER', '[a-f0-9]{32}')
-            encoded_c4x_block = encoded_c4x_block.replace('MARKER', '[a-f0-9]{32}')
+            adjusted_c4x_block = adjusted_c4x_block.replace('MARK', '[a-f0-9]{32}')
+            encoded_c4x_block = encoded_c4x_block.replace('MARK', '[a-f0-9]{32}')
 
         expected = expected.format(
             prfx=prefix,

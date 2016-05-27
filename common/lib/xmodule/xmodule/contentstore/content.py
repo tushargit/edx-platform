@@ -7,7 +7,7 @@ XASSET_LOCATION_TAG = 'c4x'
 XASSET_SRCREF_PREFIX = 'xasset:'
 XASSET_THUMBNAIL_TAIL_NAME = '.jpg'
 STREAM_DATA_CHUNK_SIZE = 1024
-BASE_ASSET_PATH = '/assets'
+BASE_ASSET_PATH = '/assets/courseware'
 
 
 import os

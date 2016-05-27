@@ -34,7 +34,8 @@ TEST_DATA_DIR = settings.COMMON_TEST_DATA_ROOT
 
 
 def get_versioned_asset_url(url):
-    return '/assets/' + md5.new(url).hexdigest() + '/' + url
+    """Generates a dummy versioned path based on an input URL"""
+    return '/assets/courseware/' + md5.new(url).hexdigest() + '/' + url
 
 
 @ddt.ddt

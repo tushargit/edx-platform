@@ -28,8 +28,8 @@ from xmodule.exceptions import NotFoundError
 
 log = logging.getLogger(__name__)
 HTTP_DATE_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
-VERSIONED_ASSETS_PREFIX = '/assets'
-VERSIONED_ASSETS_PATTERN = r'/assets/[a-f0-9]{32}'
+VERSIONED_ASSETS_PREFIX = '/assets/courseware'
+VERSIONED_ASSETS_PATTERN = r'/assets/courseware/[a-f0-9]{32}'
 
 
 class StaticContentServer(object):
@@ -44,6 +44,7 @@ class StaticContentServer(object):
         )
 
     def is_versioned_request(self, request):
+        """Determines whether the given request is a versioned asset request"""
         return request.path.startswith(VERSIONED_ASSETS_PREFIX)
 
     def process_request(self, request):
