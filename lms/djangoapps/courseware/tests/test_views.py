@@ -1772,10 +1772,12 @@ class TestIndewViewWithVerticalPositions(ModuleStoreTestCase):
     @ddt.unpack
     def test_vertical_positions(self, input_position, expected_position):
         """
-        Load first position when negative position inputted
-        Load first position when 0/-0 position inputted
-        Load given position when 0 < input_position <= num_positions_available
-        Load first position when positive position > num_positions_available
+        Tests the following cases:
+
+        * Load first position when negative position inputted.
+        * Load first position when 0/-0 position inputted.
+        * Load given position when 0 < input_position <= num_positions_available.
+        * Load first position when positive position > num_positions_available.
         """
         resp = self._get_course_vertical_by_position(input_position)
         self._assert_correct_position(resp, expected_position)
